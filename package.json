@@ -1,0 +1,24 @@
+{
+  "name": "freebitcoin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "http": "0.0.1-security",
+    "imap-simple": "^5.0.0",
+    "lodash": "^4.17.19",
+    "mysql2": "^2.1.0",
+    "path": "^0.12.7",
+    "puppeteer": "^5.2.1",
+    "querystring": "^0.2.0",
+    "request": "^2.88.2",
+    "sequelize": "^6.3.4",
+    "socks-proxy-agent": "^5.0.0",
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
