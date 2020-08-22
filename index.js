@@ -1,6 +1,6 @@
 const request = require('request');
 const sequelize = require('sequelize');
-const db = new sequelize("mysql://root:test123@localhost:3306/test");
+const db = new sequelize("mysql://root:test1234&@localhost:3306/freebitcoin");
 const { Op } = require('sequelize');
 const https = require('https');
 const querystring = require('querystring');
@@ -145,8 +145,14 @@ async function getProxies() {
                     });
                 }
             });
-            const browser = await puppeteer.launch({headless:headless});
-            const page = await browser.newPage();
+            const browser = await puppeteer.launch({
+                headless:headless,
+                args: [
+                    '--proxy-server='+protocol+'://'+ip+':'+port,
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                ],
+            });            const page = await browser.newPage();
             await page._client.send('Page.setDownloadBehavior', {
                 behavior: 'allow',
                 downloadPath: directory
@@ -374,6 +380,8 @@ function rollAccount(email, password, protocol, ip, port) {
             headless:headless,
             args: [
                 '--proxy-server='+protocol+'://'+ip+':'+port,
+                '--no-sandbox',
+                '--disable-setuid-sandbox'
             ],
         });
       try {
