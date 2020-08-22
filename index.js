@@ -30,7 +30,7 @@ var Proxies = db.define('proxies', {
 
 
 var Accounts = db.define('accounts', {
-    email: { type: sequelize.STRING, primaryKey: true },
+    email: { type: sequelize.STRING },
     password: { type: sequelize.STRING },
     balance: { type: sequelize.STRING },
     last_cashout: { type: sequelize.DATE },
