@@ -88,6 +88,8 @@ async function init() {
     printTitle();
     log(1, 'init()', 'sync proxies table');
     await Proxies.sync({force: false});
+    log(1, 'init()', 'truncate proxies table');
+    await Proxies.destroy({where: 1, truncate: true});
     log(1, 'init()', 'sync accounts table');
     await Accounts.sync({force: false});
 }
@@ -135,7 +137,6 @@ async function getProxies() {
     return new Promise(async (resolve, reject) => {
         try {
             log(1, 'getProxies()', 'truncate proxies table');
-            await Proxies.destroy({where: 1, truncate: true});
             var directory = path.normalize(__dirname+'/proxies')
             fs.readdir(directory, (err, files) => {
                 if (err) throw err;
