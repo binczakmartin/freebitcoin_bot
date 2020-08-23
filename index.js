@@ -467,9 +467,11 @@ function rollAccount(email, password, protocol, ip, port) {
                   await browser.close();
                   await rollAccount(email, password, protocol, ip, port);
                   resolve(0);
+                  return;
               }
               await browser.close();
               resolve(0);
+              return;
           }
           await sleep(5000);
           log(1, 'rollAccount()', email+" click play without captcha button");
@@ -497,6 +499,7 @@ function rollAccount(email, password, protocol, ip, port) {
                   await rollAccount(email, password, protocol, ip, port);
               }
               resolve(0);
+              return;
           } catch (e) {
               log(1, 'rollAccount()', email+" no error detected on roll");
           }
