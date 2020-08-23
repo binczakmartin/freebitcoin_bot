@@ -485,6 +485,8 @@ function rollAccount(email, password, protocol, ip, port) {
               text = await page.evaluate(element => element.textContent, element);
               var acc_winnigs = Number(text).toFixed(8);
               winnings += acc_winnigs;
+          } catch {
+              log(1, 'rollAccount()', email+" can't get winnings");
           }
           await page.waitForSelector('#balance', {timeout: 600000});
           element = await page.$("#balance");
@@ -512,7 +514,7 @@ async function rollAllAccounts() {
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             log(1, "rollAllAccounts()", proxies.length+" available proxies");
             while(accounts.length) {
-                chunk = accounts.splice(0, 6);
+                chunk = accounts.splice(0, 10);
                 for (elem of accounts) {
                     if (proxies[i] === undefined) {
                         break;
@@ -541,8 +543,8 @@ async function run() {
     var start = new Date().getTime();
 
     log(1, 'run()', 'starting ...');
-    await init();
 
+    await init();
     await getFreeProxies();
     await getProxies();
     await checkAllProxies();
@@ -552,6 +554,7 @@ async function run() {
 
     // await rollAccount("17j4ck@gmail.com", "test1234&", "", "", "");
     // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&");
+    // await getVerificationLink("itjack.18@yandex.com", "Yoshi213&");
 
     var end = new Date().getTime();
     var time = end - start;
