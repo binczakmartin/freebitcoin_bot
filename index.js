@@ -534,12 +534,15 @@ async function rollAllAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
+            var d = new Date();
+            var i = 0;
+            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_cashout: {[Op.lte]: d}}, {message: ''}]}});
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
-            var accounts = await Accounts.findAll({});
-            var i = 0;
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            d.setHours(d.getHours() - 1);
             log(1, "rollAllAccounts()", proxies.length+" available proxies");
+            log(1, "rollAllAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
                 chunk = accounts.splice(0, 10);
                 for (elem of accounts) {
@@ -557,7 +560,7 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
-            console.log(1, "rollAllAccounts()", "nb of roll = "+nb_roll+"total winnings = "+Number(winnings).toFixed(8));
+            log(1, "rollAllAccounts", "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8));
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
@@ -579,7 +582,9 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    await rollAllAccounts();
+    while (1) {
+        await rollAllAccounts();
+    }
 
     // await getVerificationLink("17j4ck.12@laposte.net", "Test1234", 1);
 
