@@ -307,7 +307,7 @@ function getVerificationLink(email, password, situation) {
             var host = 'imap.gmail.com'
             var index = 0;
             if (situation == 1) {
-                keywords = "We would like to kindly ask you to verify your email";
+                keywords = "verify your email by clicking the link below";
             } else {
                 keywords = "you need to authorize this request"
             }
@@ -353,6 +353,7 @@ function getVerificationLink(email, password, situation) {
                             resolve(0);
                         } else {
                             var body = messages[messages.length-1].parts[index].body;
+                            console.log(body);
                             if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
                                 var tab = messages[messages.length-1].parts[index].body
                                           .match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
@@ -578,7 +579,10 @@ async function run() {
     // await checkAllProxies();
 
     log(1, 'run()', 'start rolling accounts');
+
     await rollAllAccounts();
+
+    // await getVerificationLink("17j4ck.12@laposte.net", "Test1234", 1);
 
     var end = new Date().getTime();
     var time = end - start;
