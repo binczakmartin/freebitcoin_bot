@@ -353,7 +353,6 @@ function getVerificationLink(email, password, situation) {
                             resolve(0);
                         } else {
                             var body = messages[messages.length-1].parts[index].body;
-                            console.log(body);
                             if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
                                 var tab = messages[messages.length-1].parts[index].body
                                           .match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
