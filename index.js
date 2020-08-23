@@ -14,6 +14,8 @@ const fs = require('fs');
 const headless = true;
 db.options.logging = false;
 
+var winnings = 0;
+
 var Proxies = db.define('proxies', {
     ip: { type: sequelize.STRING },
     port: { type: sequelize.INTEGER },
@@ -105,6 +107,16 @@ function timeConversion(millisec) {
    } else {
        return days + " Days"
    }
+}
+
+function makeInscriptionCode(length) {
+  var result           = '';
+  var characters       = 'abcdefghijklmnopqrstuvwxyz';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
 
 function sleep(ms) {
@@ -249,7 +261,6 @@ async function insertProxies(type, filename) {
 }
 
 async function checkProxy(type, ip, port) {
-
     return new Promise(async resolve => {
         var proxyUrl = type+"://"+ip+":"+port
         var start = new Date().getTime();
@@ -302,8 +313,12 @@ function getVerificationLink(email, password) {
               host = 'imap.gmx.com';
               index = 1;
             }
-            if (email.includes('protonmail.com')) {
-              host = 'imap.protonmail.com';
+            if (email.includes('yandex.com')) {
+              host = 'imap.yandex.com';
+              index = 1;
+            }
+            if (email.includes('outlook.')) {
+              host = 'outlook.office365.com';
               index = 1;
             }
             log(1, 'getVerificationLink()', email+' '+host);
@@ -459,8 +474,18 @@ function rollAccount(email, password, protocol, ip, port) {
           await page.waitForSelector('#free_play_form_button', {timeout: 600000});
           element = await page.$("#free_play_form_button");
           await element.click();
-          await sleep(2000);
+          await sleep(5000);
           log(1, 'rollAccount()', email+" check balance");
+          try {
+              // await page.waitForSelector('#myModal22 > a', {timeout: 600000});
+              // element = await page.$("#myModal22 > a");
+              // await element.click();
+              await page.waitForSelector('#winnings', {timeout: 600000});
+              element = await page.$("#winnings");
+              text = await page.evaluate(element => element.textContent, element);
+              var acc_winnigs = Number(text).toFixed(8);
+              winnings += acc_winnigs;
+          }
           await page.waitForSelector('#balance', {timeout: 600000});
           element = await page.$("#balance");
           text = await page.evaluate(element => element.textContent, element);
@@ -481,14 +506,14 @@ async function rollAllAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
+            winnings = 0;
             var accounts = await Accounts.findAll({});
             var i = 0;
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             log(1, "rollAllAccounts()", proxies.length+" available proxies");
-            // proxies = shuffle(proxies);
             while(accounts.length) {
-                chunk = accounts.splice(0, 5);
-                for (elem of chunk) {
+                chunk = accounts.splice(0, 6);
+                for (elem of accounts) {
                     if (proxies[i] === undefined) {
                         break;
                     }
@@ -503,6 +528,7 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
+            console.log(1, "rollAllAccounts()", "total winnings = "+Number(winnigs).toFixed(8));
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
@@ -517,15 +543,15 @@ async function run() {
     log(1, 'run()', 'starting ...');
     await init();
 
-    // await getFreeProxies();
-    // await getProxies();
-    // await checkAllProxies();
+    await getFreeProxies();
+    await getProxies();
+    await checkAllProxies();
 
     log(1, 'run()', 'start rolling accounts');
     await rollAllAccounts();
 
     // await rollAccount("17j4ck@gmail.com", "test1234&", "", "", "");
-    // await getVerificationLink("17j4ck.15@protonmail.com", "test1234&");
+    // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&");
 
     var end = new Date().getTime();
     var time = end - start;
