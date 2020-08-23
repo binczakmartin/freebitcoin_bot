@@ -527,7 +527,7 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
-            console.log(1, "rollAllAccounts()", "total winnings = "+Number(winnigs).toFixed(8));
+            console.log(1, "rollAllAccounts()", "total winnings = "+Number(winnings).toFixed(8));
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
@@ -542,9 +542,10 @@ async function run() {
     log(1, 'run()', 'starting ...');
 
     await init();
+
     // await getFreeProxies();
-    await getProxies();
-    await checkAllProxies();
+    // await getProxies();
+    // await checkAllProxies();
 
     log(1, 'run()', 'start rolling accounts');
     await rollAllAccounts();
