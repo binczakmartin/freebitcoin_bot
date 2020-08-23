@@ -485,7 +485,7 @@ function rollAccount(email, password, protocol, ip, port) {
               text = await page.evaluate(element => element.textContent, element);
               var acc_winnigs = Number(text).toFixed(8);
               winnings += acc_winnigs;
-          } catch {
+          } catch (e) {
               log(1, 'rollAccount()', email+" can't get winnings");
           }
           await page.waitForSelector('#balance', {timeout: 600000});
