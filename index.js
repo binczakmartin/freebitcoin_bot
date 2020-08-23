@@ -87,8 +87,6 @@ async function init() {
     printTitle();
     log(1, 'init()', 'sync proxies table');
     await Proxies.sync({force: false});
-    log(1, 'init()', 'truncate proxies table');
-    await Proxies.destroy({where: 1, truncate: true});
     log(1, 'init()', 'sync accounts table');
     await Accounts.sync({force: false});
 }
@@ -137,9 +135,18 @@ async function testPage(ip, port) {
 }
 
 async function getProxies() {
+    log(1, 'getProxies()', 'truncate proxies table');
+    await Proxies.destroy({where: 1, truncate: true});
+    var directory = path.normalize(__dirname+'/proxies');
+    await insertProxies('socks5', path.normalize( directory+'/proxyscrape_10000_socks5_proxies.txt'));
+}
+
+async function getFreeProxies() {
+    log(1, 'getFreeProxies()', 'truncate proxies table');
+    await Proxies.destroy({where: 1, truncate: true});
     return new Promise(async (resolve, reject) => {
         try {
-            log(1, 'getProxies()', 'truncate proxies table');
+            log(1, 'getFreeProxies()', 'truncate proxies table');
             var directory = path.normalize(__dirname+'/proxies')
             fs.readdir(directory, (err, files) => {
                 if (err) throw err;
@@ -162,14 +169,14 @@ async function getProxies() {
                 behavior: 'allow',
                 downloadPath: directory
             });
-            log(1, 'getProxies()', 'https://www.proxyscan.io/');
+            log(1, 'getFreeProxies()', 'https://www.proxyscan.io/');
             await page.goto('https://www.proxyscan.io/');
             await page.click('#layout-wrapper > div > div.page-content > div > div:nth-child(1) > div > div > ul > li:nth-child(3) > p > a');
             await page.click('#layout-wrapper > div > div.page-content > div > div:nth-child(1) > div > div > ul > li:nth-child(4) > p > a');
             await sleep(5000);
             await insertProxies('socks4', path.normalize(directory+'/SOCKS4-proxies.txt'));
             await insertProxies('socks5', path.normalize( directory+'/SOCKS5-proxies.txt'));
-            log(1, 'getProxies()', 'https://proxyscrape.com/free-proxy-list');
+            log(1, 'getFreeProxies()', 'https://proxyscrape.com/free-proxy-list');
             await page.goto('https://proxyscrape.com/free-proxy-list');
             await sleep(2000);
             await page.click('#downloadsocks4');
@@ -183,7 +190,7 @@ async function getProxies() {
                 host: 'www.proxyrack.com',
                 path: '/proxyfinder/proxies.json?page=1&perPage=100000&offset=0'
             };
-            log(1, 'getProxies()', 'https://www.proxyrack.com/proxyfinder/proxies.json?page=1&perPage=1000000&offset=0');
+            log(1, 'getFreeProxies()', 'https://www.proxyrack.com/proxyfinder/proxies.json?page=1&perPage=1000000&offset=0');
             var request = https.get('https://www.proxyrack.com/proxyfinder/proxies.json?page=1&perPage=1000000&offset=0', (res) => {
                 res.on('data', function (chunk) {
                     str += chunk;
@@ -201,7 +208,7 @@ async function getProxies() {
                     resolve(0);
                 });
                 res.on('error', function(err) {
-                    log(3, 'getProxies()', err);
+                    log(3, 'getFreeProxies()', err);
                     resolve(0);
                 });
             });
@@ -210,7 +217,7 @@ async function getProxies() {
             });
             resolve(0);
         } catch (e) {
-            log(3, 'getProxies()', e);
+            log(3, 'getFreeProxies()', e);
             resolve(0);
         }
     })
@@ -272,7 +279,7 @@ async function checkAllProxies() {
         var delay = 0;
         var i = 0;
         while(proxies.length) {
-            chunk = proxies.splice(0, 5000);
+            chunk = proxies.splice(0, 1000);
             for (elem of chunk) {
                 promiseTab.push(checkProxy(elem.protocol, elem.ip, elem.port));
             }
@@ -477,23 +484,25 @@ async function rollAllAccounts() {
             var accounts = await Accounts.findAll({});
             var i = 0;
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
-            proxies = shuffle(proxies);
-            for (elem of accounts) {
-                if (proxies[i] === undefined) {
-                    break;
+            log(1, "rollAllAccounts()", proxies.length+" available proxies");
+            // proxies = shuffle(proxies);
+            while(accounts.length) {
+                chunk = accounts.splice(0, 5);
+                for (elem of accounts) {
+                    if (proxies[i] === undefined) {
+                        break;
+                    }
+                    var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
+                    var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
+                    if (testProxy == 1) {
+                        promiseTab.push(rollAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
+                        var current_email = elem.email; // bug bizarre
+                        await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
+                    }
+                    i++;
                 }
-                var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
-                var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
-                if (testProxy == 1) {
-                    promiseTab.push(rollAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
-                    var current_email = elem.email; // bug bizarre
-                    // await rollAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port);
-                    // log(1, 'rollAllAccounts()', current_email);
-                    await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
-                }
-                i++;
+                await Promise.all(promiseTab);
             }
-            await Promise.all(promiseTab);
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
@@ -508,10 +517,10 @@ async function run() {
     log(1, 'run()', 'starting ...');
     await init();
 
-    //await getProxies();
-    var directory = path.normalize(__dirname+'/proxies');
-    await insertProxies('socks5', path.normalize( directory+'/proxyscrape_10000_socks5_proxies.txt'));
-    await checkAllProxies();
+    // await getFreeProxies();
+    // await getProxies();
+    // await checkAllProxies();
+
     log(1, 'run()', 'start rolling accounts');
     await rollAllAccounts();
 
