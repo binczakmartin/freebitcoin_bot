@@ -331,7 +331,7 @@ function getVerificationLink(email, password) {
                     authTimeout: 3000,
                     tlsOptions: {
                         rejectUnauthorized: false
-     		    }
+     		        }
                 }
             };
             imaps.connect(config).then(function (connection) {
@@ -476,14 +476,12 @@ function rollAccount(email, password, protocol, ip, port) {
           await sleep(5000);
           log(1, 'rollAccount()', email+" check balance");
           try {
-              // await page.waitForSelector('#myModal22 > a', {timeout: 600000});
-              // element = await page.$("#myModal22 > a");
-              // await element.click();
               await page.waitForSelector('#winnings', {timeout: 600000});
               element = await page.$("#winnings");
               text = await page.evaluate(element => element.textContent, element);
               var acc_winnigs = Number(text).toFixed(8);
               winnings += acc_winnigs;
+              log(1, "rollAccount()", " roll winnings "+winnings)
           } catch (e) {
               log(1, 'rollAccount()', email+" can't get winnings");
           }
@@ -550,10 +548,6 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
     await rollAllAccounts();
-
-    // await rollAccount("17j4ck@gmail.com", "test1234&", "", "", "");
-    // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&");
-    // await getVerificationLink("itjack.18@yandex.com", "Yoshi213&");
 
     var end = new Date().getTime();
     var time = end - start;
