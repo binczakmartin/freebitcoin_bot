@@ -232,9 +232,6 @@ async function insertProxies(type, filename) {
                             }
                         }
                     }
-                    fs.unlink(filename, err => {
-                        if (err) throw err;
-                    });
                     resolve(0);
                 });
         } catch (e) {
