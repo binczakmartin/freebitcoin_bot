@@ -473,9 +473,12 @@ function rollAccount(email, password, protocol, ip, port) {
           await page.waitForSelector('#free_play_form_button', {timeout: 600000});
           element = await page.$("#free_play_form_button");
           await element.click();
-          await sleep(5000);
+          await sleep(10000);
           log(1, 'rollAccount()', email+" check balance");
           try {
+              await page.waitForSelector('#myModal22 > a', {timeout: 600000});
+              element = await page.$("#myModal22 > a");
+              await element.click();
               await page.waitForSelector('#winnings', {timeout: 600000});
               element = await page.$("#winnings");
               text = await page.evaluate(element => element.textContent, element);
