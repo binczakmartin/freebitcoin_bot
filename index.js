@@ -28,7 +28,6 @@ var Proxies = db.define('proxies', {
     tableName: 'proxies'
 });
 
-
 var Accounts = db.define('accounts', {
     email: { type: sequelize.STRING },
     password: { type: sequelize.STRING },
@@ -116,20 +115,24 @@ function sleep(ms) {
 
 async function testPage(ip, port) {
     return new Promise(function(resolve, reject) {
-        const info = {
-            host: ip,
-            port: port,
-        };
-        const agent = new SocksProxyAgent(info);
-        var request = https.get('https://api.ipify.org', { agent }, (res) => {
-            resolve(1);
-        });
-        request.on('error', function(err) {
+        try {
+            const info = {
+                host: ip,
+                port: port,
+            };
+            const agent = new SocksProxyAgent(info);
+            var request = https.get('https://api.ipify.org', { agent }, (res) => {
+                resolve(1);
+            });
+            request.on('error', function(err) {
+                resolve(0);
+            });
+            request.setTimeout( 30000, function( ) {
+                resolve(0);
+            });
+        } catch (e) {
             resolve(0);
-        });
-        request.setTimeout( 30000, function( ) {
-            resolve(0);
-        });
+        }
     });
 }
 
@@ -141,9 +144,11 @@ async function getProxies() {
             fs.readdir(directory, (err, files) => {
                 if (err) throw err;
                 for (const file of files) {
-                    fs.unlink(path.join(directory, file), err => {
-                        if (err) throw err;
-                    });
+                    if (file != "proxyscrape_10000_socks5_proxies.txt") {
+                        fs.unlink(path.join(directory, file), err => {
+                            if (err) throw err;
+                        });
+                    }
                 }
             });
             const browser = await puppeteer.launch({
