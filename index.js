@@ -158,7 +158,6 @@ async function getFreeProxies() {
     await Proxies.destroy({where: 1, truncate: true});
     return new Promise(async (resolve, reject) => {
         try {
-            log(1, 'getFreeProxies()', 'truncate proxies table');
             var directory = path.normalize(__dirname+'/proxies')
             fs.readdir(directory, (err, files) => {
                 if (err) throw err;
@@ -545,7 +544,7 @@ async function run() {
     log(1, 'run()', 'starting ...');
 
     await init();
-    await getFreeProxies();
+    // await getFreeProxies();
     await getProxies();
     await checkAllProxies();
 
