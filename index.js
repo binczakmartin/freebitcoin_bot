@@ -11,7 +11,7 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 
-const headless = false;
+const headless = true;
 db.options.logging = false;
 
 var Proxies = db.define('proxies', {
@@ -148,7 +148,6 @@ async function getProxies() {
             const browser = await puppeteer.launch({
                 headless:headless,
                 args: [
-                    '--proxy-server='+protocol+'://'+ip+':'+port,
                     '--no-sandbox',
                     '--disable-setuid-sandbox'
                 ],
@@ -305,7 +304,10 @@ function getVerificationLink(email, password) {
                     host: host,
                     port: 993,
                     tls: true,
-                    authTimeout: 3000
+                    authTimeout: 3000,
+                    tlsOptions: {
+                        rejectUnauthorized: false
+     		    }
                 }
             };
             imaps.connect(config).then(function (connection) {
@@ -471,9 +473,12 @@ async function rollAllAccounts() {
         try {
             var accounts = await Accounts.findAll({});
             var i = 0;
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            proxies = shuffle(proxies);
             for (elem of accounts) {
-                var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
-                proxies = shuffle(proxies);
+                if (proxies[i] === undefined) {
+                    break;
+                }
                 var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                 var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
                 if (testProxy == 1) {
@@ -500,13 +505,15 @@ async function run() {
     log(1, 'run()', 'starting ...');
     await init();
 
-    // await getProxies();
-    // await checkAllProxies();
-    // log(1, 'run()', 'start rolling accounts');
-    // await rollAllAccounts();
+    //await getProxies();
+    var directory = path.normalize(__dirname+'/proxies');
+    await insertProxies('socks5', path.normalize( directory+'/proxyscrape_10000_socks5_proxies.txt'));
+    await checkAllProxies();
+    log(1, 'run()', 'start rolling accounts');
+    await rollAllAccounts();
 
     // await rollAccount("17j4ck@gmail.com", "test1234&", "", "", "");
-    await getVerificationLink("17j4ck.15@protonmail.com", "test1234&");
+    // await getVerificationLink("17j4ck.15@protonmail.com", "test1234&");
 
     var end = new Date().getTime();
     var time = end - start;
