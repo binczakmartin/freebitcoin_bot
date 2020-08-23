@@ -15,6 +15,7 @@ const headless = true;
 db.options.logging = false;
 
 var winnings = 0;
+var nb_roll = 0;
 
 var Proxies = db.define('proxies', {
     ip: { type: sequelize.STRING },
@@ -299,11 +300,17 @@ async function checkAllProxies() {
     })
 }
 
-function getVerificationLink(email, password) {
+function getVerificationLink(email, password, situation) {
     return new Promise(async resolve => {
         try {
+            var keywords = '';
             var host = 'imap.gmail.com'
             var index = 0;
+            if (situation == 1) {
+                keywords = "We would like to kindly ask you to verify your email";
+            } else {
+                keywords = "you need to authorize this request"
+            }
             if (email.includes('laposte.net')) {
               host = 'imap.laposte.net';
               index = 1;
@@ -345,7 +352,8 @@ function getVerificationLink(email, password) {
                             log(2, 'getVerificationLink()', email+' no new message received');
                             resolve(0);
                         } else {
-                            if (messages[messages.length-1].parts[index].body.includes("https://freebitco.in/?op=email_verify&i")) {
+                            var body = messages[messages.length-1].parts[index].body;
+                            if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
                                 var tab = messages[messages.length-1].parts[index].body
                                           .match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
                                 for (elem of tab) {
@@ -454,7 +462,7 @@ function rollAccount(email, password, protocol, ip, port) {
               await Accounts.update({ message: text }, {where: {email: email}});
               if (text.indexOf("Please check your email inbox") !== -1) {
                   sleep(30000);
-                  var link = await getVerificationLink(email, password);
+                  var link = await getVerificationLink(email, password, 0);
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await rollAccount(email, password, protocol, ip, port);
@@ -476,15 +484,31 @@ function rollAccount(email, password, protocol, ip, port) {
           await sleep(10000);
           log(1, 'rollAccount()', email+" check balance");
           try {
+              await page.waitForSelector('#free_play_error', {timeout: 600000});
+              element = await page.$("#free_play_error");
+              text = await page.evaluate(element => element.textContent, element);
+              log(2, 'rollAccount()', email+" "+text);
+              await Accounts.update({ message: text }, {where: {email: email}});
+              sleep(30000);
+              var link = await getVerificationLink(email, password, 1);
+              await ipVerification(link, browser, email);
+              await browser.close();
+              await rollAccount(email, password, protocol, ip, port);
+              resolve(0);
+          } catch (e) {
+              log(1, 'rollAccount()', email+" no error detected on roll");
+          }
+          try {
               await page.waitForSelector('#myModal22 > a', {timeout: 600000});
               element = await page.$("#myModal22 > a");
               await element.click();
               await page.waitForSelector('#winnings', {timeout: 600000});
               element = await page.$("#winnings");
               text = await page.evaluate(element => element.textContent, element);
-              var acc_winnigs = Number(text).toFixed(8);
-              winnings += acc_winnigs;
-              log(1, "rollAccount()", " roll winnings "+winnings)
+              var acc_winnings = Number(text);
+              winnings += acc_winnings;
+              nb_roll++;
+              log(1, "rollAccount()", " roll winnings "+acc_winnings.toFixed(8))
           } catch (e) {
               log(1, 'rollAccount()', email+" can't get winnings");
           }
@@ -509,6 +533,7 @@ async function rollAllAccounts() {
         var promiseTab = [];
         try {
             winnings = 0;
+            nb_roll = 0;
             var accounts = await Accounts.findAll({});
             var i = 0;
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
@@ -530,7 +555,7 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
-            console.log(1, "rollAllAccounts()", "total winnings = "+Number(winnings).toFixed(8));
+            console.log(1, "rollAllAccounts()", "nb of roll = "+nb_roll+"total winnings = "+Number(winnings).toFixed(8));
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
