@@ -488,7 +488,7 @@ async function rollAllAccounts() {
             // proxies = shuffle(proxies);
             while(accounts.length) {
                 chunk = accounts.splice(0, 5);
-                for (elem of accounts) {
+                for (elem of chunk) {
                     if (proxies[i] === undefined) {
                         break;
                     }
