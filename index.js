@@ -489,11 +489,13 @@ function rollAccount(email, password, protocol, ip, port) {
               text = await page.evaluate(element => element.textContent, element);
               log(2, 'rollAccount()', email+" "+text);
               await Accounts.update({ message: text }, {where: {email: email}});
-              sleep(30000);
-              var link = await getVerificationLink(email, password, 1);
-              await ipVerification(link, browser, email);
-              await browser.close();
-              await rollAccount(email, password, protocol, ip, port);
+              if (text.includes("You need to verify your email before you can play")) {
+                  await sleep(30000);
+                  var link = await getVerificationLink(email, password, 1);
+                  await ipVerification(link, browser, email);
+                  await browser.close();
+                  await rollAccount(email, password, protocol, ip, port);
+              }
               resolve(0);
           } catch (e) {
               log(1, 'rollAccount()', email+" no error detected on roll");
