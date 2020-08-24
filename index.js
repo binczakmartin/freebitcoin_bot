@@ -353,7 +353,7 @@ function getVerificationLink(email, password, situation) {
                     };
                     connection.search(searchCriteria, fetchOptions).then( function (messages) {
                         connection.on("error", function() {
-                            log(3, "getVerificationLink()", "An error occured. This should handle it?");
+                            log(3, "getVerificationLink()", email+" An error occured. This should handle it?");
                             return resolve(0);
                         });
                         if (messages.length == 0) {
