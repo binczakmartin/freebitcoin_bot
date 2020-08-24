@@ -651,12 +651,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    // while (1) {
-    //     await rollAllAccounts();
-    // }
+    while (1) {
+        await rollAllAccounts();
+    }
 
     // await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
-    await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
+    // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
 
     var end = new Date().getTime();
     var time = end - start;
