@@ -41,7 +41,8 @@ var Accounts = db.define('accounts', {
     btc_addr: { type: sequelize.STRING },
     refferer: { type: sequelize.INTEGER },
     last_ip: { type: sequelize.STRING },
-    message: { type: sequelize.STRING }
+    message1: { type: sequelize.STRING },
+    message2: { type: sequelize.STRING }
 }, {
     underscored: true,
     paranoid: true,
@@ -537,18 +538,20 @@ function processAccount(email, password, protocol, ip, port) {
           var text = await page.evaluate(element => element.textContent, element);
           if (text != "Error message!") {
               log(2, 'processAccount()', email+" "+text);
-              if (text.indexOf("Please check your email inbox") !== -1) {
+              if (text.includes("Please check your email inbox")) {
                   sleep(30000);
                   var link = await getVerificationLink(email, password, 0);
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
-                  return resolve(0);
+                  resolve(0);
+              } else if (text.includes("Too many tries")) {
+                  await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
               } else {
-                  await Accounts.update({ message: text }, {where: {email: email}});
+                  await Accounts.update({ message2: text }, {where: {email: email}});
               }
               await browser.close();
-              return resolve(0);
+              resolve(0);
           }
           await sleep(5000);
           var balance = await getBalance(page, email).catch(e => {throw e});
@@ -567,15 +570,17 @@ function processAccount(email, password, protocol, ip, port) {
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
-              } else {
-                  await Accounts.update({ message: text }, {where: {email: email}});
+              } else if (text.includes("You do not have enough reward points") || text.includes("You do not have enough reward points")) {
+                  await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+              } else if (text) {
+                  await Accounts.update({ message1: text }, {where: {email: email}});
               }
-              return resolve(0);
+              resolve(0);
           } catch (e) {
               log(1, 'processAccount()', email+" no error detected on roll");
           }
           var balance = await getBalance(page, email).catch(e => {throw e});
-          await Accounts.update({ balance: balance, last_roll: new Date(), message: '' }, {where: {email: email}});
+          await Accounts.update({ balance: balance, last_roll: new Date(), message1: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
           log(3, 'processAccount()', email+' '+e);
@@ -592,7 +597,7 @@ async function rollAllAccounts() {
         try {
             var d = new Date();
             var i = 0;
-            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message: ''}]}});
+            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message: ''}]}}, , order: [['type', 'ASC']]);
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
