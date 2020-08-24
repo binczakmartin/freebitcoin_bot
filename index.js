@@ -530,7 +530,7 @@ function processAccount(email, password, protocol, ip, port) {
       try {
           var page = await browser.newPage();
           await page.setDefaultNavigationTimeout(600000);
-          page = await logIn(page, email, password);
+          page = await logIn(page, email, password).catch(e => {throw e});
           await sleep(10000);
           var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
           var text = await page.evaluate(element => element.textContent, element);
@@ -549,9 +549,9 @@ function processAccount(email, password, protocol, ip, port) {
               return resolve(0);
           }
           await sleep(5000);
-          var balance = await getBalance(page, email);
+          var balance = await getBalance(page, email).catch(e => {throw e});
           await Accounts.update({ balance: balance}, {where: {email: email}});
-          await rollAccount(page, email);
+          await rollAccount(page, email).catch(e => {throw e});
           await sleep(10000);
           await getWinnings(page, email);
           try {
@@ -571,7 +571,7 @@ function processAccount(email, password, protocol, ip, port) {
           } catch (e) {
               log(1, 'processAccount()', email+" no error detected on roll");
           }
-          var balance = await getBalance(page, email);
+          var balance = await getBalance(page, email).catch(e => {throw e});
           await Accounts.update({ balance: balance, last_roll: new Date(), message: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
@@ -605,7 +605,7 @@ async function rollAllAccounts() {
                     var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
                     if (testProxy == 1) {
-                        promiseTab.push(rollAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
+                        promiseTab.push(processAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
                         var current_email = elem.email; // bug bizarre
                         await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
                     }
