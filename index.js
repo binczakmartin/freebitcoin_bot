@@ -35,7 +35,7 @@ var Accounts = db.define('accounts', {
     email: { type: sequelize.STRING },
     password: { type: sequelize.STRING },
     balance: { type: sequelize.STRING },
-    last_cashout: { type: sequelize.DATE },
+    last_roll: { type: sequelize.DATE },
     type: { type: sequelize.BOOLEAN},
     btc_addr: { type: sequelize.STRING },
     refferer: { type: sequelize.INTEGER },
@@ -522,7 +522,7 @@ function rollAccount(email, password, protocol, ip, port) {
           text = await page.evaluate(element => element.textContent, element);
           var balance = text.split('&nbsp;')[0];
           log(1, 'rollAccount()', email+" balance = "+balance);
-          await Accounts.update({ balance: balance, last_cashout: new Date(), message: '' }, {where: {email: email}});
+          await Accounts.update({ balance: balance, last_roll: new Date(), message: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
           log(3, 'rollAccount()', email+' '+e);
@@ -539,7 +539,7 @@ async function rollAllAccounts() {
         try {
             var d = new Date();
             var i = 0;
-            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_cashout: {[Op.lte]: d}}, {message: ''}]}});
+            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message: ''}]}});
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
@@ -564,6 +564,8 @@ async function rollAllAccounts() {
                 await Promise.all(promiseTab);
             }
             log(1, "rollAllAccounts", "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8));
+            log(1, "rollAllAccounts()", "wait for 10 seconds")
+            await sleep(10);
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
