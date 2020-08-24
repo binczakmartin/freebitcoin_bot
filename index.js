@@ -537,7 +537,6 @@ function processAccount(email, password, protocol, ip, port) {
           var text = await page.evaluate(element => element.textContent, element);
           if (text != "Error message!") {
               log(2, 'processAccount()', email+" "+text);
-              await Accounts.update({ message: text }, {where: {email: email}});
               if (text.indexOf("Please check your email inbox") !== -1) {
                   sleep(30000);
                   var link = await getVerificationLink(email, password, 0);
@@ -545,6 +544,8 @@ function processAccount(email, password, protocol, ip, port) {
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
                   return resolve(0);
+              } else {
+                  await Accounts.update({ message: text }, {where: {email: email}});
               }
               await browser.close();
               return resolve(0);
@@ -560,13 +561,14 @@ function processAccount(email, password, protocol, ip, port) {
               element = await page.$("#free_play_error");
               text = await page.evaluate(element => element.textContent, element);
               log(2, 'processAccount()', email+" "+text);
-              await Accounts.update({ message: text }, {where: {email: email}});
               if (text.includes("You need to verify your email before you can play")) {
                   await sleep(30000);
                   var link = await getVerificationLink(email, password, 1);
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
+              } else {
+                  await Accounts.update({ message: text }, {where: {email: email}});
               }
               return resolve(0);
           } catch (e) {
@@ -599,7 +601,7 @@ async function rollAllAccounts() {
             log(1, "rollAllAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
                 chunk = accounts.splice(0, 10);
-                for (elem of accounts) {
+                for (elem of chunk) {
                     if (proxies[i] === undefined) {
                         break;
                     }
