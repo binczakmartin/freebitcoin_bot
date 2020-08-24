@@ -542,7 +542,7 @@ function processAccount(email, password, protocol, ip, port) {
                   var link = await getVerificationLink(email, password, 0);
                   await ipVerification(link, browser, email);
                   await browser.close();
-                  await rollAccount(email, password, protocol, ip, port);
+                  await processAccount(email, password, protocol, ip, port);
                   return resolve(0);
               }
               await browser.close();
@@ -551,7 +551,7 @@ function processAccount(email, password, protocol, ip, port) {
           await sleep(5000);
           var balance = await getBalance(page, email).catch(e => {throw e});
           await Accounts.update({ balance: balance}, {where: {email: email}});
-          await rollAccount(page, email).catch(e => {throw e});
+          await rollAccount(page, email, password).catch(e => {throw e});
           await sleep(10000);
           await getWinnings(page, email);
           try {
