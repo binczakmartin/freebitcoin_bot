@@ -598,12 +598,12 @@ async function rollAllAccounts() {
         var promiseTab = [];
         try {
             var d = new Date();
+            d.setHours(d.getHours() - 1);
             var i = 0;
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
-            d.setHours(d.getHours() - 1);
             log(1, "rollAllAccounts()", proxies.length+" available proxies");
             log(1, "rollAllAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
