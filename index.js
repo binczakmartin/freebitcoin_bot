@@ -601,6 +601,7 @@ async function rollAllAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
+            var start = new Date().getTime();
             var d = new Date();
             d.setHours(d.getHours() - 1);
             var i = 0;
@@ -627,10 +628,12 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
+            var end = new Date().getTime();
+            var time = end - start;
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
-            log(1, "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8));
+            log(1, "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
             log(1, "rollAllAccounts()", "wait for 10 seconds")
             await sleep(10000);
             resolve(0);
@@ -639,8 +642,6 @@ async function rollAllAccounts() {
 }
 
 async function run() {
-    var start = new Date().getTime();
-
     log(1, 'run()', 'starting ...');
 
     await init();
@@ -658,11 +659,7 @@ async function run() {
     // await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
     // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
 
-    var end = new Date().getTime();
-    var time = end - start;
-
     console.log('\nExecution time: ' + timeConversion(time));
-    // process.exit(22);
 }
 
 run();
