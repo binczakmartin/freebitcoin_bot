@@ -409,6 +409,114 @@ async function ipVerification(link, browser, email) {
     });
 }
 
+async function closeModal(page, email) {
+    return new Promise(async resolve => {
+        try {
+            await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 600000});
+            var element = await page.$("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button");
+            log(1, 'closeModal()', email+" click notification modal button");
+            await element.click();
+            await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 600000});
+            element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
+            log(1, 'closeModal()', email+" click cookies banner button");
+            await element.click();
+            resolve(0);
+        } catch (e) {
+            log(1, 'closeModal()', email+" no notification modal or cookies banner");
+            resolve(0);
+        }
+    })
+}
+
+async function logIn(page, email, password) {
+    return new Promise(async resolve => {
+        try {
+            await page.goto('https://freebitco.in/?op=signup_page');
+            log(1, 'logIn()', email+" "+page.url());
+            await sleep(10000);
+            await closeModal(page, email);
+            await sleep(3500);
+            log(1, 'logIn()', email+" click login menu button");
+            await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 600000});
+            var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
+            await element.click();
+            await sleep(5000);
+            log(1, 'logIn()', email+" fill email");
+            await page.waitForSelector('#login_form_btc_address', {timeout: 600000});
+            await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
+            await sleep(2000);
+            log(1, 'logIn()', email+" fill password '"+password+"'");
+            await page.waitForSelector('#login_form_password', {timeout: 600000});
+            await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
+            log(1, 'logIn()', email+" click login button");
+            await sleep(2000);
+            await page.waitForSelector('#login_button', {timeout: 600000});
+            element = await page.$("#login_button");
+            await element.click();
+            resolve(page);
+        } catch(e) {
+            log(3, 'logIn()', email+" "+e);
+            reject(e);
+        }
+    })
+}
+
+async function rollAccount(page, email, password) {
+    return new Promise(async resolve => {
+        try {
+            log(1, 'rollAccount()', email+" click play without captcha button");
+            await page.waitForSelector('#play_without_captchas_button', {timeout: 600000});
+            var element = await page.$("#play_without_captchas_button");
+            await element.click();
+            await sleep(2000);
+            log(1, 'rollAccount()', email+" click roll button");
+            await page.waitForSelector('#free_play_form_button', {timeout: 600000});
+            element = await page.$("#free_play_form_button");
+            await element.click();
+        } catch (e) {
+            log(3, 'rollAccount()', email+" "+e);
+            reject(e);
+        }
+    })
+}
+
+async function getBalance(page, email) {
+    return new Promise(async resolve => {
+        try {
+            await page.waitForSelector('#balance', {timeout: 600000});
+            var element = await page.$("#balance");
+            text = await page.evaluate(element => element.textContent, element);
+            var balance = text.split('&nbsp;')[0];
+            log(1, 'getBalance()', email+" balance = "+balance);
+            resolve(balance);
+        } catch (e) {
+            log(3, 'getBalance()', email+" "+e);
+            reject("can't get balance");
+        }
+    });
+}
+
+async function getWinnings(page, email) {
+    return new Promise(async resolve => {
+        try {
+            await page.waitForSelector('#myModal22 > a', {timeout: 600000});
+            var element = await page.$("#myModal22 > a");
+            await element.click();
+            await page.waitForSelector('#winnings', {timeout: 600000});
+            element = await page.$("#winnings");
+            text = await page.evaluate(element => element.textContent, element);
+            var acc_winnings = Number(text);
+            winnings += acc_winnings;
+            nb_roll++;
+            log(1, "getWinnings()", " roll winnings "+acc_winnings.toFixed(8))
+            resolve(0);
+        } catch (e) {
+            log(1, 'getWinnings()', email+" can't get winnings");
+            resolve(0);
+        }
+    });
+}
+
 function rollAccount(email, password, protocol, ip, port) {
     return new Promise(async resolve => {
         const browser = await puppeteer.launch({
@@ -422,41 +530,9 @@ function rollAccount(email, password, protocol, ip, port) {
       try {
           const page = await browser.newPage();
           await page.setDefaultNavigationTimeout(600000);
-          await page.goto('https://freebitco.in/?op=signup_page');
-          log(1, 'rollAccount()', email+" "+page.url());
+          page = await logIn(page, email, password);
           await sleep(10000);
-          try {
-              await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 600000});
-              var element = await page.$("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button");
-              log(1, 'rollAccount()', email+" click notification modal button");
-              await element.click();
-              await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 600000});
-              element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
-              log(1, 'rollAccount()', email+" click cookies banner button");
-              await element.click();
-          } catch (e) {
-              log(1, 'rollAccount()', email+" no notification modal or cookies banner");
-          }
-          await sleep(3500);
-          log(1, 'rollAccount()', email+" click login menu button");
-          await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 600000});
-          element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
-          await element.click();
-          await sleep(5000);
-          log(1, 'rollAccount()', email+" fill email");
-          await page.waitForSelector('#login_form_btc_address', {timeout: 600000});
-          await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
-          await sleep(2000);
-          log(1, 'rollAccount()', email+" fill password '"+password+"'");
-          await page.waitForSelector('#login_form_password', {timeout: 600000});
-          await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
-          log(1, 'rollAccount()', email+" click login button");
-          await sleep(2000);
-          await page.waitForSelector('#login_button', {timeout: 600000});
-          element = await page.$("#login_button");
-          await element.click();
-          await sleep(10000);
-          element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
+          var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
           var text = await page.evaluate(element => element.textContent, element);
           if (text != "Error message!") {
               log(2, 'rollAccount()', email+" "+text);
@@ -467,25 +543,17 @@ function rollAccount(email, password, protocol, ip, port) {
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await rollAccount(email, password, protocol, ip, port);
-                  resolve(0);
-                  return;
+                  return resolve(0);
               }
               await browser.close();
-              resolve(0);
-              return;
+              return resolve(0);
           }
           await sleep(5000);
-          log(1, 'rollAccount()', email+" click play without captcha button");
-          await page.waitForSelector('#play_without_captchas_button', {timeout: 600000});
-          element = await page.$("#play_without_captchas_button");
-          await element.click();
-          await sleep(2000);
-          log(1, 'rollAccount()', email+" click roll button");
-          await page.waitForSelector('#free_play_form_button', {timeout: 600000});
-          element = await page.$("#free_play_form_button");
-          await element.click();
+          var balance = await getBalance(page, email);
+          await Accounts.update({ balance: balance}, {where: {email: email}});
+          await rollAccount(page, email);
           await sleep(10000);
-          log(1, 'rollAccount()', email+" check balance");
+          await getWinnings(page, email);
           try {
               await page.waitForSelector('#free_play_error', {timeout: 600000});
               element = await page.$("#free_play_error");
@@ -499,30 +567,11 @@ function rollAccount(email, password, protocol, ip, port) {
                   await browser.close();
                   await rollAccount(email, password, protocol, ip, port);
               }
-              resolve(0);
-              return;
+              return resolve(0);
           } catch (e) {
               log(1, 'rollAccount()', email+" no error detected on roll");
           }
-          try {
-              await page.waitForSelector('#myModal22 > a', {timeout: 600000});
-              element = await page.$("#myModal22 > a");
-              await element.click();
-              await page.waitForSelector('#winnings', {timeout: 600000});
-              element = await page.$("#winnings");
-              text = await page.evaluate(element => element.textContent, element);
-              var acc_winnings = Number(text);
-              winnings += acc_winnings;
-              nb_roll++;
-              log(1, "rollAccount()", " roll winnings "+acc_winnings.toFixed(8))
-          } catch (e) {
-              log(1, 'rollAccount()', email+" can't get winnings");
-          }
-          await page.waitForSelector('#balance', {timeout: 600000});
-          element = await page.$("#balance");
-          text = await page.evaluate(element => element.textContent, element);
-          var balance = text.split('&nbsp;')[0];
-          log(1, 'rollAccount()', email+" balance = "+balance);
+          var balance = await getBalance(page, email);
           await Accounts.update({ balance: balance, last_roll: new Date(), message: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
