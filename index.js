@@ -396,7 +396,6 @@ async function ipVerification(link, browser, email) {
     return new Promise(async resolve => {
         try {
             const page = await browser.newPage();
-            await page.setDefaultNavigationTimeout(30000);
             await page.goto(link);
             await page.waitForSelector('body > center > div > input[type=button]:nth-child(2)', {timeout: 30000});
             await page.click('body > center > div > input[type=button]:nth-child(2)');
@@ -432,7 +431,7 @@ async function closeModal(page, email) {
 }
 
 async function logIn(page, email, password) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         try {
             await page.goto('https://freebitco.in/?op=signup_page');
             log(1, 'logIn()', email+" "+page.url());
@@ -485,7 +484,7 @@ async function rollAccount(page, email, password) {
 }
 
 async function getBalance(page, email) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         try {
             await page.waitForSelector('#balance', {timeout: 30000});
             var element = await page.$("#balance");
@@ -533,7 +532,7 @@ function processAccount(email, password, protocol, ip, port) {
         });
       try {
           var page = await browser.newPage();
-          await page.setDefaultNavigationTimeout(30000);
+          await page.setDefaultNavigationTimeout(60000);
           page = await logIn(page, email, password).catch(e => {throw e});
           await sleep(10000);
           var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
