@@ -571,7 +571,7 @@ function processAccount(email, password, protocol, ip, port) {
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
-              } else if (text.includes("You do not have enough reward points")) {
+              } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
                   await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
               } else if (text) {
                   await Accounts.update({ message1: text }, {where: {email: email}});
