@@ -352,6 +352,10 @@ function getVerificationLink(email, password, situation) {
                         bodies: ['HEADER', 'TEXT'],
                     };
                     connection.search(searchCriteria, fetchOptions).then( function (messages) {
+                        connection.on("error", function() {
+                            log(3, "getVerificationLink()", "An error occured. This should handle it?");
+                            return resolve(0);
+                        });
                         if (messages.length == 0) {
                             log(2, 'getVerificationLink()', email+' no new message received');
                             resolve(0);
@@ -581,7 +585,7 @@ function processAccount(email, password, protocol, ip, port) {
               log(1, 'processAccount()', email+" no error detected on roll");
           }
           var balance = await getBalance(page, email).catch(e => {throw e});
-          await Accounts.update({ balance: balance, last_roll: new Date(), message1: '' }, {where: {email: email}});
+          await Accounts.update({ balance: balance, last_roll: new Date(), message1: '', message2: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
           await Accounts.update({ message2: e.message, last_roll: new Date()}, {where: {email: email}});
@@ -647,12 +651,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await rollAllAccounts();
-    }
+    // while (1) {
+    //     await rollAllAccounts();
+    // }
 
     // await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
-    // await getVerificationLink("17j4ck.12@laposte.net", "Test1234", 1);
+    await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
 
     var end = new Date().getTime();
     var time = end - start;
