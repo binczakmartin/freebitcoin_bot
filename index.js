@@ -584,7 +584,7 @@ function processAccount(email, password, protocol, ip, port) {
           await Accounts.update({ balance: balance, last_roll: new Date(), message1: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
-          await Accounts.update({ message2: e, last_roll: new Date()}, {where: {email: email}});
+          await Accounts.update({ message2: e.message, last_roll: new Date()}, {where: {email: email}});
           log(3, 'processAccount()', email+' '+e);
           await browser.close();
       } finally {
