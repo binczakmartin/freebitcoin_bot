@@ -36,6 +36,7 @@ var Accounts = db.define('accounts', {
     password: { type: sequelize.STRING },
     balance: { type: sequelize.STRING },
     last_roll: { type: sequelize.DATE },
+    last_cashout: { type: sequelize.DATE },
     type: { type: sequelize.BOOLEAN},
     btc_addr: { type: sequelize.STRING },
     refferer: { type: sequelize.INTEGER },
