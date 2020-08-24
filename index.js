@@ -462,7 +462,7 @@ async function logIn(page, email, password) {
 }
 
 async function rollAccount(page, email, password) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         try {
             log(1, 'rollAccount()', email+" click play without captcha button");
             await page.waitForSelector('#play_without_captchas_button', {timeout: 600000});
