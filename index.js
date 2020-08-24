@@ -1,6 +1,6 @@
 const request = require('request');
 const sequelize = require('sequelize');
-const db = new sequelize("mysql://root:test1234&@localhost:3306/freebitcoin");
+const db = new sequelize("mysql://root:test1234&@151.80.140.49:3306/freebitcoin");
 const { Op } = require('sequelize');
 const https = require('https');
 const querystring = require('querystring');
@@ -11,11 +11,13 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 
-const headless = true;
+const headless = false;
 db.options.logging = false;
 
 var winnings = 0;
 var nb_roll = 0;
+var nb_acc = 5
+var nb_proxies = 1000
 
 var Proxies = db.define('proxies', {
     ip: { type: sequelize.STRING },
@@ -292,7 +294,7 @@ async function checkAllProxies() {
         var delay = 0;
         var i = 0;
         while(proxies.length) {
-            chunk = proxies.splice(0, 1000);
+            chunk = proxies.splice(0, nb_proxies);
             for (elem of chunk) {
                 promiseTab.push(checkProxy(elem.protocol, elem.ip, elem.port));
             }
@@ -394,9 +396,9 @@ async function ipVerification(link, browser, email) {
     return new Promise(async resolve => {
         try {
             const page = await browser.newPage();
-            await page.setDefaultNavigationTimeout(600000);
+            await page.setDefaultNavigationTimeout(30000);
             await page.goto(link);
-            await page.waitForSelector('body > center > div > input[type=button]:nth-child(2)', {timeout: 600000});
+            await page.waitForSelector('body > center > div > input[type=button]:nth-child(2)', {timeout: 30000});
             await page.click('body > center > div > input[type=button]:nth-child(2)');
             await page.bringToFront();
             await sleep(10000);
@@ -413,11 +415,11 @@ async function ipVerification(link, browser, email) {
 async function closeModal(page, email) {
     return new Promise(async resolve => {
         try {
-            await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 600000});
+            await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 30000});
             var element = await page.$("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button");
             log(1, 'closeModal()', email+" click notification modal button");
             await element.click();
-            await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 600000});
+            await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 30000});
             element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
             log(1, 'closeModal()', email+" click cookies banner button");
             await element.click();
@@ -438,20 +440,20 @@ async function logIn(page, email, password) {
             await closeModal(page, email);
             await sleep(3500);
             log(1, 'logIn()', email+" click login menu button");
-            await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 600000});
+            await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 30000});
             var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
             await element.click();
             await sleep(5000);
             log(1, 'logIn()', email+" fill email");
-            await page.waitForSelector('#login_form_btc_address', {timeout: 600000});
+            await page.waitForSelector('#login_form_btc_address', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
             await sleep(2000);
             log(1, 'logIn()', email+" fill password '"+password+"'");
-            await page.waitForSelector('#login_form_password', {timeout: 600000});
+            await page.waitForSelector('#login_form_password', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
             log(1, 'logIn()', email+" click login button");
             await sleep(2000);
-            await page.waitForSelector('#login_button', {timeout: 600000});
+            await page.waitForSelector('#login_button', {timeout: 30000});
             element = await page.$("#login_button");
             await element.click();
             resolve(page);
@@ -466,12 +468,12 @@ async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
             log(1, 'rollAccount()', email+" click play without captcha button");
-            await page.waitForSelector('#play_without_captchas_button', {timeout: 600000});
+            await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
             var element = await page.$("#play_without_captchas_button");
             await element.click();
             await sleep(2000);
             log(1, 'rollAccount()', email+" click roll button");
-            await page.waitForSelector('#free_play_form_button', {timeout: 600000});
+            await page.waitForSelector('#free_play_form_button', {timeout: 30000});
             element = await page.$("#free_play_form_button");
             await element.click();
             resolve(page);
@@ -485,7 +487,7 @@ async function rollAccount(page, email, password) {
 async function getBalance(page, email) {
     return new Promise(async resolve => {
         try {
-            await page.waitForSelector('#balance', {timeout: 600000});
+            await page.waitForSelector('#balance', {timeout: 30000});
             var element = await page.$("#balance");
             text = await page.evaluate(element => element.textContent, element);
             var balance = text.split('&nbsp;')[0];
@@ -501,10 +503,10 @@ async function getBalance(page, email) {
 async function getWinnings(page, email) {
     return new Promise(async resolve => {
         try {
-            await page.waitForSelector('#myModal22 > a', {timeout: 600000});
+            await page.waitForSelector('#myModal22 > a', {timeout: 30000});
             var element = await page.$("#myModal22 > a");
             await element.click();
-            await page.waitForSelector('#winnings', {timeout: 600000});
+            await page.waitForSelector('#winnings', {timeout: 30000});
             element = await page.$("#winnings");
             text = await page.evaluate(element => element.textContent, element);
             var acc_winnings = Number(text);
@@ -524,14 +526,14 @@ function processAccount(email, password, protocol, ip, port) {
         const browser = await puppeteer.launch({
             headless:headless,
             args: [
-                '--proxy-server='+protocol+'://'+ip+':'+port,
+                // '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox'
             ],
         });
       try {
           var page = await browser.newPage();
-          await page.setDefaultNavigationTimeout(600000);
+          await page.setDefaultNavigationTimeout(30000);
           page = await logIn(page, email, password).catch(e => {throw e});
           await sleep(10000);
           var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
@@ -560,7 +562,7 @@ function processAccount(email, password, protocol, ip, port) {
           await sleep(10000);
           await getWinnings(page, email);
           try {
-              await page.waitForSelector('#free_play_error', {timeout: 600000});
+              await page.waitForSelector('#free_play_error', {timeout: 30000});
               element = await page.$("#free_play_error");
               text = await page.evaluate(element => element.textContent, element);
               log(2, 'processAccount()', email+" "+text);
@@ -597,7 +599,7 @@ async function rollAllAccounts() {
         try {
             var d = new Date();
             var i = 0;
-            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message: ''}]}}, , order: [['type', 'ASC']]);
+            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
@@ -605,7 +607,7 @@ async function rollAllAccounts() {
             log(1, "rollAllAccounts()", proxies.length+" available proxies");
             log(1, "rollAllAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
-                chunk = accounts.splice(0, 10);
+                chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
                     if (proxies[i] === undefined) {
                         break;
@@ -649,13 +651,14 @@ async function run() {
         await rollAllAccounts();
     }
 
+    // await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
     // await getVerificationLink("17j4ck.12@laposte.net", "Test1234", 1);
 
     var end = new Date().getTime();
     var time = end - start;
 
     console.log('\nExecution time: ' + timeConversion(time));
-    process.exit(22);
+    // process.exit(22);
 }
 
 run();
