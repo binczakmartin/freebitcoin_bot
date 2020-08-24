@@ -564,12 +564,12 @@ async function rollAllAccounts() {
                 }
                 await Promise.all(promiseTab);
             }
-            log(1, "rollAllAccounts", "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8));
-            log(1, "rollAllAccounts()", "wait for 10 seconds")
-            await sleep(10);
         } catch (e) {
             log(3, 'rollAllAccounts()', e);
         } finally {
+            log(1, "rollAllAccounts", "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8));
+            log(1, "rollAllAccounts()", "wait for 10 seconds")
+            await sleep(10000);
             resolve(0);
         }
     });
