@@ -11,12 +11,12 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 
-const headless = false;
+const headless = true;
 db.options.logging = false;
 
 var winnings = 0;
 var nb_roll = 0;
-var nb_acc = 5
+var nb_acc = 10
 var nb_proxies = 1000
 
 var Proxies = db.define('proxies', {
@@ -526,7 +526,7 @@ function processAccount(email, password, protocol, ip, port) {
         const browser = await puppeteer.launch({
             headless:headless,
             args: [
-                // '--proxy-server='+protocol+'://'+ip+':'+port,
+                '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox'
             ],
