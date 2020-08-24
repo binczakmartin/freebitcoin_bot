@@ -517,7 +517,7 @@ async function getWinnings(page, email) {
     });
 }
 
-function rollAccount(email, password, protocol, ip, port) {
+function processAccount(email, password, protocol, ip, port) {
     return new Promise(async resolve => {
         const browser = await puppeteer.launch({
             headless:headless,
@@ -528,14 +528,14 @@ function rollAccount(email, password, protocol, ip, port) {
             ],
         });
       try {
-          const page = await browser.newPage();
+          var page = await browser.newPage();
           await page.setDefaultNavigationTimeout(600000);
           page = await logIn(page, email, password);
           await sleep(10000);
           var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
           var text = await page.evaluate(element => element.textContent, element);
           if (text != "Error message!") {
-              log(2, 'rollAccount()', email+" "+text);
+              log(2, 'processAccount()', email+" "+text);
               await Accounts.update({ message: text }, {where: {email: email}});
               if (text.indexOf("Please check your email inbox") !== -1) {
                   sleep(30000);
@@ -558,24 +558,24 @@ function rollAccount(email, password, protocol, ip, port) {
               await page.waitForSelector('#free_play_error', {timeout: 600000});
               element = await page.$("#free_play_error");
               text = await page.evaluate(element => element.textContent, element);
-              log(2, 'rollAccount()', email+" "+text);
+              log(2, 'processAccount()', email+" "+text);
               await Accounts.update({ message: text }, {where: {email: email}});
               if (text.includes("You need to verify your email before you can play")) {
                   await sleep(30000);
                   var link = await getVerificationLink(email, password, 1);
                   await ipVerification(link, browser, email);
                   await browser.close();
-                  await rollAccount(email, password, protocol, ip, port);
+                  await processAccount(email, password, protocol, ip, port);
               }
               return resolve(0);
           } catch (e) {
-              log(1, 'rollAccount()', email+" no error detected on roll");
+              log(1, 'processAccount()', email+" no error detected on roll");
           }
           var balance = await getBalance(page, email);
           await Accounts.update({ balance: balance, last_roll: new Date(), message: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
-          log(3, 'rollAccount()', email+' '+e);
+          log(3, 'processAccount()', email+' '+e);
           await browser.close();
       } finally {
           resolve(0);
