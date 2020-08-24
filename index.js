@@ -545,14 +545,14 @@ function processAccount(email, password, protocol, ip, port) {
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
-                  resolve(0);
+                  return resolve(0);
               } else if (text.includes("Too many tries")) {
                   await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
               } else {
                   await Accounts.update({ message2: text }, {where: {email: email}});
               }
               await browser.close();
-              resolve(0);
+              return resolve(0);
           }
           await sleep(5000);
           var balance = await getBalance(page, email).catch(e => {throw e});
@@ -571,12 +571,12 @@ function processAccount(email, password, protocol, ip, port) {
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
-              } else if (text.includes("You do not have enough reward points") || text.includes("You do not have enough reward points")) {
+              } else if (text.includes("You do not have enough reward points")) {
                   await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
               } else if (text) {
                   await Accounts.update({ message1: text }, {where: {email: email}});
               }
-              resolve(0);
+              return resolve(0);
           } catch (e) {
               log(1, 'processAccount()', email+" no error detected on roll");
           }
@@ -584,6 +584,7 @@ function processAccount(email, password, protocol, ip, port) {
           await Accounts.update({ balance: balance, last_roll: new Date(), message1: '' }, {where: {email: email}});
           await browser.close();
       } catch (e) {
+          await Accounts.update({ message2: e, last_roll: new Date()}, {where: {email: email}});
           log(3, 'processAccount()', email+' '+e);
           await browser.close();
       } finally {
