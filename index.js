@@ -473,6 +473,7 @@ async function rollAccount(page, email, password) {
             await page.waitForSelector('#free_play_form_button', {timeout: 600000});
             element = await page.$("#free_play_form_button");
             await element.click();
+            resolve(page);
         } catch (e) {
             log(3, 'rollAccount()', email+" "+e);
             reject(e);
@@ -551,7 +552,7 @@ function processAccount(email, password, protocol, ip, port) {
           await sleep(5000);
           var balance = await getBalance(page, email).catch(e => {throw e});
           await Accounts.update({ balance: balance}, {where: {email: email}});
-          await rollAccount(page, email, password).catch(e => {throw e});
+          page = await rollAccount(page, email, password).catch(e => {throw e});
           await sleep(10000);
           await getWinnings(page, email);
           try {
