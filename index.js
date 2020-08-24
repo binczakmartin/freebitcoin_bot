@@ -305,7 +305,7 @@ async function checkAllProxies() {
 }
 
 function getVerificationLink(email, password, situation) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         try {
             var keywords = '';
             var host = 'imap.gmail.com'
@@ -352,9 +352,9 @@ function getVerificationLink(email, password, situation) {
                         bodies: ['HEADER', 'TEXT'],
                     };
                     connection.search(searchCriteria, fetchOptions).then( function (messages) {
-                        connection.on("error", function() {
-                            log(3, "getVerificationLink()", email+" An error occured. This should handle it?");
-                            return resolve(0);
+                        connection.on("error", function(e) {
+                            log(3, "getVerificationLink()", email+" An error occured."+e);
+                            return reject(e);
                         });
                         if (messages.length == 0) {
                             log(2, 'getVerificationLink()', email+' no new message received');
@@ -545,7 +545,7 @@ function processAccount(email, password, protocol, ip, port) {
               log(2, 'processAccount()', email+" "+text);
               if (text.includes("Please check your email inbox")) {
                   sleep(30000);
-                  var link = await getVerificationLink(email, password, 0);
+                  var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
                   await ipVerification(link, browser, email);
                   await browser.close();
                   await processAccount(email, password, protocol, ip, port);
