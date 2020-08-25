@@ -441,7 +441,7 @@ async function logIn(page, email, password) {
             log(1, 'logIn()', email+" "+page.url());
             await sleep(10000);
             await closeModal(page, email);
-            await sleep(3500);
+            await sleep(5000);
             log(1, 'logIn()', email+" click login menu button");
             await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 30000});
             var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
@@ -450,12 +450,12 @@ async function logIn(page, email, password) {
             log(1, 'logIn()', email+" fill email");
             await page.waitForSelector('#login_form_btc_address', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
-            await sleep(2000);
+            await sleep(5000);
             log(1, 'logIn()', email+" fill password '"+password+"'");
             await page.waitForSelector('#login_form_password', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
             log(1, 'logIn()', email+" click login button");
-            await sleep(2000);
+            await sleep(5000);
             await page.waitForSelector('#login_button', {timeout: 30000});
             element = await page.$("#login_button");
             await element.click();
