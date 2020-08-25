@@ -16,7 +16,7 @@ db.options.logging = false;
 
 var winnings = 0;
 var nb_roll = 0;
-var nb_acc = 10
+var nb_acc = 6
 var nb_proxies = 1000
 
 var Proxies = db.define('proxies', {
