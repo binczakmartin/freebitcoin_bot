@@ -5,19 +5,24 @@ const { Op } = require('sequelize');
 const https = require('https');
 const querystring = require('querystring');
 const SocksProxyAgent = require('socks-proxy-agent');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const pluginStealth = require('puppeteer-extra-plugin-stealth');
 const imaps = require('imap-simple');
 const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
+const solve = require(path.resolve( __dirname, "./captchaSolver.js" ))
 
-const headless = true;
-db.options.logging = false;
+const headless = false;
+const datadir = path.resolve( __dirname, "./datadir" )
 
 var winnings = 0;
 var nb_roll = 0;
-var nb_acc = 6
-var nb_proxies = 1000
+var nb_acc = 5;
+var nb_proxies = 1000;
+var verbose_level = 3;
+
+db.options.logging = false;
 
 var Proxies = db.define('proxies', {
     ip: { type: sequelize.STRING },
@@ -80,14 +85,22 @@ function shuffle(array) {
 function log(type, function_name, message) {
     var str = "";
     if (type == 1) {
-      str = "\x1b[38;5;226m[INFO]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
+      str = "\x1b[38;5;2m[INFO]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     } else if (type == 2) {
-      str = "\x1b[38;5;208m[WARNING]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
+      str = "\x1b[38;5;3m[WARNING]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     } else if (type == 3) {
-      str = "\x1b[38;5;9m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
+      str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
-    str = str + " - \x1b[38;5;240m"+function_name+" \x1b[0m"+message;
-    console.log(str);
+    str = str + " \x1b[38;5;103m"+function_name+": \x1b[0m"+message;
+    if (verbose_level <= 2 && (type == 3 || function_name == "rollAllAcounts")) {
+        console.log(str);
+    }
+    if (verbose_level == 2 && type == 2) {
+        console.log(str);
+    }
+    if (verbose_level == 3) {
+        console.log(str);
+    }
 }
 
 async function init() {
@@ -180,7 +193,8 @@ async function getFreeProxies() {
                     '--no-sandbox',
                     '--disable-setuid-sandbox'
                 ],
-            });            const page = await browser.newPage();
+            });            
+            const page = await browser.newPage();
             await page._client.send('Page.setDownloadBehavior', {
                 behavior: 'allow',
                 downloadPath: directory
@@ -198,6 +212,7 @@ async function getFreeProxies() {
             await page.click('#downloadsocks4');
             await page.click('#downloadsocks5');
             await sleep(5000);
+            await page.close();
             await browser.close();
             await insertProxies('socks4', path.normalize(directory+'/socks4_proxies.txt'));
             await insertProxies('socks5', path.normalize( directory+'/socks5_proxies.txt'));
@@ -408,6 +423,7 @@ async function ipVerification(link, browser, email) {
             await page.goto('about:blank');
             await page.close;
         } catch (e) {
+            await page.close()
             log(3, 'ipVerification()', email+' '+e);
         } finally {
             resolve(0);
@@ -462,6 +478,7 @@ async function logIn(page, email, password) {
             resolve(page);
         } catch(e) {
             log(3, 'logIn()', email+" "+e);
+            await page.close();
             reject(e);
         }
     })
@@ -470,18 +487,24 @@ async function logIn(page, email, password) {
 async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            log(1, 'rollAccount()', email+" click play without captcha button");
-            await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
-            var element = await page.$("#play_without_captchas_button");
-            await element.click();
-            await sleep(2000);
+            // log(1, 'rollAccount()', email+" click play without captcha button");
+            // await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
+            // var element = await page.$("#play_without_captchas_button");
+            // await element.click();
+            // await sleep(2000);
+            log(1, "rollAccount()", email+" trying to resolve captcha");
+            await solve(page).catch((e) => {throw e});
+            await sleep(10000)
             log(1, 'rollAccount()', email+" click roll button");
             await page.waitForSelector('#free_play_form_button', {timeout: 30000});
             element = await page.$("#free_play_form_button");
             await element.click();
-            resolve(page);
+            await solve(page).catch((e) => {throw e});
         } catch (e) {
             log(3, 'rollAccount()', email+" "+e);
+            if (page) {
+                await page.close();
+            }
             reject(e);
         }
     })
@@ -498,6 +521,9 @@ async function getBalance(page, email) {
             resolve(balance);
         } catch (e) {
             log(3, 'getBalance()', email+" "+e);
+            if (page) {
+                await page.close();
+            }
             reject("can't get balance");
         }
     });
@@ -526,78 +552,97 @@ async function getWinnings(page, email) {
 
 function processAccount(email, password, protocol, ip, port) {
     return new Promise(async resolve => {
+        puppeteer.use(pluginStealth())
         const browser = await puppeteer.launch({
             headless:headless,
             args: [
-                '--proxy-server='+protocol+'://'+ip+':'+port,
+                //'--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
-                '--disable-setuid-sandbox'
+                '--disable-setuid-sandbox',
+                '--disable-web-security --user-data-dir='+datadir,
+                //'--window-size=360,500',
+                '--window-position=000,000',
+                '--disable-dev-shm-usage'
             ],
         });
-      try {
-          var page = await browser.newPage();
-          await page.setDefaultNavigationTimeout(60000);
-          page = await logIn(page, email, password).catch(e => {throw e});
-          await sleep(10000);
-          var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
-          var text = await page.evaluate(element => element.textContent, element);
-          if (text != "Error message!") {
-              log(2, 'processAccount()', email+" "+text);
-              if (text.includes("Please check your email inbox")) {
-                  sleep(30000);
-                  var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
-                  await ipVerification(link, browser, email);
-                  await browser.close();
-                  await processAccount(email, password, protocol, ip, port);
-                  return resolve(0);
-              } else if (text.includes("Too many tries")) {
-                  await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
-              } else {
-                  await Accounts.update({ message2: text }, {where: {email: email}});
-              }
-              await browser.close();
-              return resolve(0);
-          }
-          await sleep(5000);
-          var balance = await getBalance(page, email).catch(e => {throw e});
-          await Accounts.update({ balance: balance}, {where: {email: email}});
-          page = await rollAccount(page, email, password).catch(e => {throw e});
-          await sleep(10000);
-          await getWinnings(page, email);
-          try {
-              await page.waitForSelector('#free_play_error', {timeout: 30000});
-              element = await page.$("#free_play_error");
-              text = await page.evaluate(element => element.textContent, element);
-              log(2, 'processAccount()', email+" "+text);
-              if (text.includes("You need to verify your email before you can play")) {
-                  await sleep(30000);
-                  var link = await getVerificationLink(email, password, 1);
-                  await ipVerification(link, browser, email);
-                  await browser.close();
-                  await processAccount(email, password, protocol, ip, port);
-              } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
-                  await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
-              } else if (text) {
-                  await Accounts.update({ message1: text }, {where: {email: email}});
-              }
-              return resolve(0);
-          } catch (e) {
-              log(1, 'processAccount()', email+" no error detected on roll");
-          }
-          var balance = await getBalance(page, email).catch(e => {throw e});
-          await Accounts.update({ balance: balance, last_roll: new Date(), message1: '', message2: '' }, {where: {email: email}});
-          await browser.close();
-      } catch (e) {
-          await Accounts.update({ message2: e.message, last_roll: new Date()}, {where: {email: email}});
-          log(3, 'processAccount()', email+' '+e);
-          await browser.close();
-      } finally {
-          resolve(0);
-      }
+        try {
+            var page = await browser.newPage();
+            await page.setDefaultNavigationTimeout(60000);
+            page = await logIn(page, email, password).catch(e => {throw e});
+            await sleep(10000);
+            var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
+            var text = await page.evaluate(element => element.textContent, element);
+            if (text != "Error message!") {
+                log(2, 'processAccount()', email+" "+text);
+                if (text.includes("Please check your email inbox")) {
+                    sleep(30000);
+                    var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
+                    await ipVerification(link, browser, email);
+                    pages = await browser.pages();
+                    pages.map(async (page) => await page.close())
+                    await browser.close();
+                    await processAccount(email, password, protocol, ip, port);
+                    return resolve(0);
+                } else if (text.includes("Too many tries")) {
+                    await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+                } else {
+                    await Accounts.update({ message2: text }, {where: {email: email}});
+                }
+                console.log("test");
+                pages = await browser.pages();
+                pages.map(async (page) => await page.close())
+                await browser.close();
+                return resolve(0);
+            }
+            await sleep(5000);
+            var balance = await getBalance(page, email).catch(e => {throw e});
+            await Accounts.update({ balance: balance}, {where: {email: email}});
+            page = await rollAccount(page, email, password).catch(e => {throw e});
+            await sleep(15000);
+            await getWinnings(page, email);
+            try {
+                await page.waitForSelector('#free_play_error', {timeout: 30000});
+                element = await page.$("#free_play_error");
+                text = await page.evaluate(element => element.textContent, element);
+                log(2, 'processAccount()', email+" "+text);
+                if (text.includes("You need to verify your email before you can play")) {
+                    await sleep(30000);
+                    var link = await getVerificationLink(email, password, 1);
+                    await ipVerification(link, browser, email);
+                    pages = await browser.pages();
+                    pages.map(async (page) => await page.close())
+                    await browser.close();
+                    await processAccount(email, password, protocol, ip, port);
+                } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
+                    await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+                } else if (text) {
+                    await Accounts.update({ message1: text }, {where: {email: email}});
+                }
+                pages = await browser.pages();
+                pages.map(async (page) => await page.close())
+                await browser.close();
+                return resolve(0);
+            } catch (e) {
+                log(1, 'processAccount()', email+" no error detected on roll");
+            }
+            var balance = await getBalance(page, email).catch(e => {throw e});
+            await Accounts.update({ balance: balance, last_roll: new Date(), message1: '', message2: '' }, {where: {email: email}});
+            pages = await browser.pages();
+            pages.map(async (page) => await page.close())
+            await browser.close();
+        } catch (e) {
+            await Accounts.update({ message2: e.message, last_roll: new Date()}, {where: {email: email}});
+            log(3, 'processAccount()', email+' '+e);
+            pages = await browser.pages();
+            pages.map(async (page) => await page.close())
+            await browser.close();
+        } finally {
+            resolve(0);
+        }
     });
 }
 
-async function rollAllAccounts() {
+async function processAvailableAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
@@ -609,8 +654,8 @@ async function rollAllAccounts() {
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             winnings = 0;
             nb_roll = 0;
-            log(1, "rollAllAccounts()", proxies.length+" available proxies");
-            log(1, "rollAllAccounts()", "try to roll "+accounts.length+" accounts");
+            log(1, "processAvailableAccounts()", proxies.length+" available proxies");
+            log(1, "processAvailableAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
@@ -620,6 +665,7 @@ async function rollAllAccounts() {
                     var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
                     if (testProxy == 1) {
+                        log(1, "processAvailableAccounts()", "process account: "+email+" whith proxy: "+proxy);
                         promiseTab.push(processAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
                         var current_email = elem.email; // bug bizarre
                         await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
@@ -631,10 +677,10 @@ async function rollAllAccounts() {
             var end = new Date().getTime();
             var time = end - start;
         } catch (e) {
-            log(3, 'rollAllAccounts()', e);
+            log(3, 'processAvailableAccounts()', e);
         } finally {
-            log(1, "rollAllAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
-            log(1, "rollAllAccounts()", "wait for 10 seconds")
+            log(1, "processAvailableAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
+            log(1, "processAvailableAccounts()", "wait for 10 seconds")
             await sleep(10000);
             resolve(0);
         }
@@ -652,14 +698,13 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await rollAllAccounts();
-    }
+    // while (1) {
+    //     await rollAllAccounts();
+    // }
 
-    // await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
+    await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
     // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
 
-    console.log('\nExecution time: ' + timeConversion(time));
 }
 
 run();
