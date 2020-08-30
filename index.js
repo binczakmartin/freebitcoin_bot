@@ -92,7 +92,7 @@ function log(type, function_name, message) {
     } else if (type == 3) {
       str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
-    str = str + " \x1b[38;5;138m"+function_name+": \x1b[0m"+message;
+    str = str + " \x1b[38;5;96m"+function_name+": \x1b[0m"+message;
     if (verbose_level <= 2 && (type == 3 || function_name == "rollAllAcounts")) {
         console.log(str);
     }
@@ -440,10 +440,10 @@ async function closePushModal(page, email) {
         try {
             await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 30000});
             var element = await page.$("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button");
-            log(1, 'closePushModal()', email+" click notification modal button big "+e);
+            log(1, 'closePushModal()', email+" click notification modal button big ");
             await element.click();
         } catch (e) {
-            // console.log(e)            
+            log(2, 'closePushModal()', email+" "+e);
         } finally {
             resolve(page);
         }
@@ -454,10 +454,10 @@ async function closeSetCookie(page, email) {
         try {
             await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 3000});
             var element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
-            log(1, 'closeModal1()', email+" click cookies banner button");
+            log(1, 'closeSetCookie()', email+" click cookies banner button");
             await element.click();
         } catch (e) {
-            // console.log(e);
+            log(2, 'closeSetCookie()', email+" "+e);
         } finally {
             resolve(page);
         }
@@ -468,19 +468,19 @@ async function logIn(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
             await sleep(5000);
-            log(1, 'logIn()', email+" click login menu button");
+            log(1, 'logIn()', email+" try to logIn");
             await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 30000});
             var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
             await element.click();
             await sleep(1000);
-            log(1, 'logIn()', email+" fill email");
+            // log(1, 'logIn()', email+" fill email");
             await page.waitForSelector('#login_form_btc_address', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
             await sleep(1000);
-            log(1, 'logIn()', email+" fill password '"+password+"'");
+            // log(1, 'logIn()', email+" fill password '"+password+"'");
             await page.waitForSelector('#login_form_password', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
-            log(1, 'logIn()', email+" click login button");
+            // log(1, 'logIn()', email+" click login button");
             await sleep(1000);
             await page.waitForSelector('#login_button', {timeout: 30000});
             element = await page.$("#login_button");
@@ -600,7 +600,7 @@ function processAccount(email, password, protocol, ip, port) {
             defaultViewport: null,
             headless:headless,
             args: [
-                '--proxy-server='+protocol+'://'+ip+':'+port,
+                // '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
@@ -613,10 +613,10 @@ function processAccount(email, password, protocol, ip, port) {
             await page.setViewport({ width: 1500, height: 2000 })
             await page.goto('https://freebitco.in/?op=signup_page');
             await sleep(10000);
-            page = await closeSetCookie(page, email);
             log(1, 'processAccount()', email+" "+page.url());
             if (page.url() != "https://freebitco.in/?op=home") {
                 page = await closePushModal(page, email);
+                page = await closeSetCookie(page, email);
                 await sleep(5000);
                 page = await logIn(page, email, password).catch(e => {throw e});
                 await sleep(6000);
@@ -646,6 +646,7 @@ function processAccount(email, password, protocol, ip, port) {
                 }
             }
             await sleep(15000);
+            page = await closeSetCookie(page, email);
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance}, {where: {email: email}});
             await sleep(15000);
@@ -760,12 +761,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await processAvailableAccounts();
-    }
+    // while (1) {
+    //     await processAvailableAccounts();
+    // }
 
     // await captchaSolver.test();
-    // await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '');
+    await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
     // while (1) {
     //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
     // }
