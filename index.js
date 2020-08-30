@@ -5,15 +5,16 @@ const { Op } = require('sequelize');
 const https = require('https');
 const querystring = require('querystring');
 const SocksProxyAgent = require('socks-proxy-agent');
+// const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-extra');
-const pluginStealth = require('puppeteer-extra-plugin-stealth');
+// const pluginStealth = require('puppeteer-extra-plugin-stealth');
 const imaps = require('imap-simple');
 const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
-const solve = require(path.resolve( __dirname, "./captchaSolver.js" ))
+const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
 
-const headless = false;
+const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
 
 var winnings = 0;
@@ -374,22 +375,26 @@ function getVerificationLink(email, password, situation) {
                         if (messages.length == 0) {
                             log(2, 'getVerificationLink()', email+' no new message received');
                             resolve(0);
-                        } else {
-                            var body = messages[messages.length-1].parts[index].body;
-                            if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
-                                var tab = messages[messages.length-1].parts[index].body
-                                          .match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
-                                for (elem of tab) {
-                                    if (elem.indexOf("https://freebitco.in/?op=email_verify") !== -1) {
-                                        log(1, 'getVerificationLink()', email+" "+elem);
-                                        resolve(elem);
+                        } else {       
+                            // for(var i = messages.length - 1; i >= 0; i--) {
+                            for(var i = 0; i < messages.length; i++) {
+                                var body = messages[i].parts[index].body;
+                                console.log(messages[i].attributes.uid);
+                                connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
+                                    if (err) console.log(err);
+                                });
+                                if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
+                                    var tab = body.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
+                                    for (elem of tab) {
+                                        if (elem.indexOf("https://freebitco.in/?op=email_verify") !== -1) {
+                                            log(1, 'getVerificationLink()', email+" "+elem);
+                                            return resolve(elem);
+                                        }
                                     }
                                 }
-                                resolve(0);
-                            } else {
-                                log(2, 'getVerificationLink()', email+' no message received from freebitco.in');
-                                resolve(0);
                             }
+                            log(2, 'getVerificationLink()', email+' no message received from freebitco.in');
+                            resolve(0);
                         }
                     }).catch(e => {
                         log(3, 'getVerificationLink()', email+" "+e);
@@ -422,30 +427,39 @@ async function ipVerification(link, browser, email) {
             await sleep(10000);
             await page.goto('about:blank');
             await page.close;
-        } catch (e) {
-            await page.close()
-            log(3, 'ipVerification()', email+' '+e);
-        } finally {
             resolve(0);
+        } catch (e) {
+            log(3, 'ipVerification()', email+' '+e);
+            reject(e);
         }
     });
 }
 
-async function closeModal(page, email) {
+async function closePushModal(page, email) {
     return new Promise(async resolve => {
         try {
             await page.waitForSelector("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button", {timeout: 30000});
             var element = await page.$("#push_notification_modal > div.push_notification_big > div:nth-child(2) > div > div.pushpad_deny_button");
-            log(1, 'closeModal()', email+" click notification modal button");
+            log(1, 'closePushModal()', email+" click notification modal button big "+e);
             await element.click();
-            await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 30000});
-            element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
-            log(1, 'closeModal()', email+" click cookies banner button");
-            await element.click();
-            resolve(0);
         } catch (e) {
-            log(1, 'closeModal()', email+" no notification modal or cookies banner");
-            resolve(0);
+            // console.log(e)            
+        } finally {
+            resolve(page);
+        }
+    })
+}
+async function closeSetCookie(page, email) {
+    return new Promise(async resolve => {
+        try {
+            await page.waitForSelector("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all", {timeout: 3000});
+            var element = await page.$("body > div.cc_banner-wrapper > div > a.cc_btn.cc_btn_accept_all");
+            log(1, 'closeModal1()', email+" click cookies banner button");
+            await element.click();
+        } catch (e) {
+            // console.log(e);
+        } finally {
+            resolve(page);
         }
     })
 }
@@ -453,25 +467,21 @@ async function closeModal(page, email) {
 async function logIn(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            await page.goto('https://freebitco.in/?op=signup_page');
-            log(1, 'logIn()', email+" "+page.url());
-            await sleep(10000);
-            await closeModal(page, email);
             await sleep(5000);
             log(1, 'logIn()', email+" click login menu button");
             await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 30000});
             var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
             await element.click();
-            await sleep(5000);
+            await sleep(1000);
             log(1, 'logIn()', email+" fill email");
             await page.waitForSelector('#login_form_btc_address', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
-            await sleep(5000);
+            await sleep(1000);
             log(1, 'logIn()', email+" fill password '"+password+"'");
             await page.waitForSelector('#login_form_password', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
             log(1, 'logIn()', email+" click login button");
-            await sleep(5000);
+            await sleep(1000);
             await page.waitForSelector('#login_button', {timeout: 30000});
             element = await page.$("#login_button");
             await element.click();
@@ -487,19 +497,23 @@ async function logIn(page, email, password) {
 async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            // log(1, 'rollAccount()', email+" click play without captcha button");
-            // await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
-            // var element = await page.$("#play_without_captchas_button");
-            // await element.click();
-            // await sleep(2000);
             log(1, "rollAccount()", email+" trying to resolve captcha");
-            await solve(page).catch((e) => {throw e});
-            await sleep(10000)
+            isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
+            if (!isCaptcha) {
+                log(1, 'rollAccount()', email+" click play without captcha button");
+                await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
+                var element = await page.$("#play_without_captchas_button");
+                await element.click();
+                await sleep(2000);
+            }
+            await sleep(3000);
             log(1, 'rollAccount()', email+" click roll button");
             await page.waitForSelector('#free_play_form_button', {timeout: 30000});
             element = await page.$("#free_play_form_button");
             await element.click();
-            await solve(page).catch((e) => {throw e});
+            await sleep(6000);
+            // await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
+            return resolve(page);
         } catch (e) {
             log(3, 'rollAccount()', email+" "+e);
             if (page) {
@@ -521,9 +535,6 @@ async function getBalance(page, email) {
             resolve(balance);
         } catch (e) {
             log(3, 'getBalance()', email+" "+e);
-            if (page) {
-                await page.close();
-            }
             reject("can't get balance");
         }
     });
@@ -552,53 +563,95 @@ async function getWinnings(page, email) {
 
 function processAccount(email, password, protocol, ip, port) {
     return new Promise(async resolve => {
-        puppeteer.use(pluginStealth())
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
+        );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')(),
+        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/navigator.webdriver')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/sourceurl')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
+        );
         const browser = await puppeteer.launch({
+            defaultViewport: null,
             headless:headless,
             args: [
-                //'--proxy-server='+protocol+'://'+ip+':'+port,
+                '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-web-security --user-data-dir='+datadir,
-                //'--window-size=360,500',
-                '--window-position=000,000',
-                '--disable-dev-shm-usage'
+                '--disable-web-security',
+                '--user-data-dir='+datadir,
+                '--window-size=1500,2000',
             ],
         });
         try {
             var page = await browser.newPage();
-            await page.setDefaultNavigationTimeout(60000);
-            page = await logIn(page, email, password).catch(e => {throw e});
+            await page.setViewport({ width: 1500, height: 2000 })
+            await page.goto('https://freebitco.in/?op=signup_page');
             await sleep(10000);
-            var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
-            var text = await page.evaluate(element => element.textContent, element);
-            if (text != "Error message!") {
-                log(2, 'processAccount()', email+" "+text);
-                if (text.includes("Please check your email inbox")) {
-                    sleep(30000);
-                    var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
-                    await ipVerification(link, browser, email);
+            page = await closeSetCookie(page, email);
+            log(1, 'processAccount()', email+" "+page.url());
+            if (page.url() != "https://freebitco.in/?op=home") {
+                page = await closePushModal(page, email);
+                await sleep(5000);
+                page = await logIn(page, email, password).catch(e => {throw e});
+                await sleep(6000);
+                var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
+                var text = await page.evaluate(element => element.textContent, element);
+                if (text != "Error message!") {
+                    log(2, 'processAccount()', email+" "+text);
+                    if (text.includes("Please check your email inbox")) {
+                        sleep(30000);
+                        var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
+                        await ipVerification(link, browser, email).catch((e) => {throw e});
+                        pages = await browser.pages();
+                        pages.map(async (page) => await page.close())
+                        await browser.close();
+                        await processAccount(email, password, protocol, ip, port);
+                        return resolve(0);
+                    } else if (text.includes("Too many tries")) {
+                        await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+                    } else {
+                        await Accounts.update({ message2: text }, {where: {email: email}});
+                    }
+                    console.log("test2 => "+text);
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
                     await browser.close();
-                    await processAccount(email, password, protocol, ip, port);
                     return resolve(0);
-                } else if (text.includes("Too many tries")) {
-                    await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
-                } else {
-                    await Accounts.update({ message2: text }, {where: {email: email}});
                 }
-                console.log("test");
-                pages = await browser.pages();
-                pages.map(async (page) => await page.close())
-                await browser.close();
-                return resolve(0);
             }
-            await sleep(5000);
+            await sleep(15000);
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance}, {where: {email: email}});
+            await sleep(15000);
             page = await rollAccount(page, email, password).catch(e => {throw e});
             await sleep(15000);
+            // await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
             await getWinnings(page, email);
             try {
                 await page.waitForSelector('#free_play_error', {timeout: 30000});
@@ -623,7 +676,7 @@ function processAccount(email, password, protocol, ip, port) {
                 await browser.close();
                 return resolve(0);
             } catch (e) {
-                log(1, 'processAccount()', email+" no error detected on roll");
+                log(1, 'processAccount()', email+" no error detected on roll "+e);
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance, last_roll: new Date(), message1: '', message2: '' }, {where: {email: email}});
@@ -637,6 +690,15 @@ function processAccount(email, password, protocol, ip, port) {
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
+            log(1, "processAccount()", "remove file in "+datadir);
+            fs.readdir(datadir, (err, files) => {
+                if (err) throw err;
+                for (const file of files) {
+                    fs.unlink(path.join(datadir, file), err => {
+                        if (err) throw err;
+                    });
+                }
+            });
             resolve(0);
         }
     });
@@ -698,13 +760,15 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
+    while (1) {
+        await processAvailableAccounts();
+    }
+
+    // await captchaSolver.test();
+    // await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '');
     // while (1) {
-    //     await rollAllAccounts();
+    //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
     // }
-
-    await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
-    // await getVerificationLink("itjack.20@outlook.fr", "Yoshi213&", 1);
-
 }
 
 run();
