@@ -419,7 +419,7 @@ function getVerificationLink(email, password, situation) {
 }
 
 async function ipVerification(link, browser, email) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve, reject) => {
         try {
             const page = await browser.newPage();
             await page.goto(link);
