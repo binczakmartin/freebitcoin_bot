@@ -60,7 +60,7 @@ var Accounts = db.define('accounts', {
 
 function printTitle() {
     console.log('\033c');
-    var str = "\x1b[38;5;134m .d888                          888      888\n"
+    var str = "\x1b[38;5;96m .d888                          888      888\n"
     +"d88P\"                           888      888\n"
     +"888                             888      888\n"
     +"888888 888d888 .d88b.   .d88b.  88888b.  888888 .d8888b\n"
@@ -92,7 +92,7 @@ function log(type, function_name, message) {
     } else if (type == 3) {
       str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
-    str = str + " \x1b[38;5;96m"+function_name+": \x1b[0m"+message;
+    str = str + " \x1b[38;5;134m"+function_name+": \x1b[0m"+message;
     if (verbose_level <= 2 && (type == 3 || function_name == "rollAllAcounts")) {
         console.log(str);
     }
