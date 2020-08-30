@@ -376,14 +376,15 @@ function getVerificationLink(email, password, situation) {
                             log(2, 'getVerificationLink()', email+' no new message received');
                             resolve(0);
                         } else {       
-                            // for(var i = messages.length - 1; i >= 0; i--) {
-                            for(var i = 0; i < messages.length; i++) {
+                            for(var i = messages.length - 1; i >= 0; i--) {
+                            // for(var i = 0; i < messages.length; i++) {
                                 var body = messages[i].parts[index].body;
                                 console.log(messages[i].attributes.uid);
                                 connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
                                     if (err) console.log(err);
                                 });
                                 if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
+                                    console.log(body);
                                     var tab = body.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
                                     for (elem of tab) {
                                         if (elem.indexOf("https://freebitco.in/?op=email_verify") !== -1) {
