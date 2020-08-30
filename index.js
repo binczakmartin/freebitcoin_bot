@@ -15,7 +15,7 @@ const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
 const rimraf = require("rimraf");
 
-const headless = false;
+const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
 
 var winnings = 0;
