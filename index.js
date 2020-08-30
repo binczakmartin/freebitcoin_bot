@@ -92,7 +92,7 @@ function log(type, function_name, message) {
     } else if (type == 3) {
       str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
-    str = str + " \x1b[38;5;103m"+function_name+": \x1b[0m"+message;
+    str = str + " \x1b[38;5;134m"+function_name+": \x1b[0m"+message;
     if (verbose_level <= 2 && (type == 3 || function_name == "rollAllAcounts")) {
         console.log(str);
     }
@@ -727,9 +727,9 @@ async function processAvailableAccounts() {
                     var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
                     if (testProxy == 1) {
-                        log(1, "processAvailableAccounts()", "process account: "+email+" whith proxy: "+proxy);
-                        promiseTab.push(processAccount(elem.email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
                         var current_email = elem.email; // bug bizarre
+                        log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+proxy);
+                        promiseTab.push(processAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
                         await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
                     }
                     i++;
