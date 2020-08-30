@@ -728,7 +728,7 @@ async function processAvailableAccounts() {
                     var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
-                        log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+proxy);
+                        log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+testProxy);
                         promiseTab.push(processAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
                         await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
                     }
