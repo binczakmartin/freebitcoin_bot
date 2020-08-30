@@ -13,9 +13,9 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
-var rimraf = require("rimraf");
+const rimraf = require("rimraf");
 
-const headless = true;
+const headless = false;
 const datadir = path.resolve( __dirname, "./datadir" )
 
 var winnings = 0;
@@ -382,7 +382,6 @@ function getVerificationLink(email, password, situation) {
                                 var body = messages[i].parts[index].body;
                                 // console.log(body);
                                 if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
-                                    console.log(body);
                                     var tab = body.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
                                     for (elem of tab) {
                                         if (elem.indexOf("https://freebitco.in/?op=email_verify") !== -1) {
@@ -606,7 +605,7 @@ function processAccount(email, password, protocol, ip, port) {
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
-                '--user-data-dir='+datadir,
+                // '--user-data-dir='+datadir,
                 '--window-size=1500,2000',
             ],
         });
@@ -640,7 +639,7 @@ function processAccount(email, password, protocol, ip, port) {
                     } else {
                         await Accounts.update({ message2: text }, {where: {email: email}});
                     }
-                    console.log("test2 => "+text);
+                    log(2, "processAccount()", "test2 => "+text);
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
                     await browser.close();
@@ -702,7 +701,7 @@ function processAccount(email, password, protocol, ip, port) {
             //         });
             //     }
             // });
-            rimraf.sync(datadir);
+            // rimraf.sync(datadir);
             resolve(0);
         }
     });
@@ -769,7 +768,7 @@ async function run() {
     }
 
     // await captchaSolver.test();
-    // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '');
+    // await processAccount("17j4ck.4@gmail.com", 'test1234&', '', '', '');
     // while (1) {
     //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
     // }
