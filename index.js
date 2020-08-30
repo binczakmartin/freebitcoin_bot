@@ -13,6 +13,7 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
+var rimraf = require("rimraf");
 
 const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
@@ -379,10 +380,7 @@ function getVerificationLink(email, password, situation) {
                             for(var i = messages.length - 1; i >= 0; i--) {
                             // for(var i = 0; i < messages.length; i++) {
                                 var body = messages[i].parts[index].body;
-                                console.log(messages[i].attributes.uid);
-                                connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
-                                    if (err) console.log(err);
-                                });
+                                // console.log(body);
                                 if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
                                     console.log(body);
                                     var tab = body.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
@@ -393,6 +391,9 @@ function getVerificationLink(email, password, situation) {
                                         }
                                     }
                                 }
+                                connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
+                                    if (err) console.log(err);
+                                });
                             }
                             log(2, 'getVerificationLink()', email+' no message received from freebitco.in');
                             resolve(0);
@@ -692,15 +693,16 @@ function processAccount(email, password, protocol, ip, port) {
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
-            log(1, "processAccount()", "remove file in "+datadir);
-            fs.readdir(datadir, (err, files) => {
-                if (err) throw err;
-                for (const file of files) {
-                    fs.unlink(path.join(datadir, file), err => {
-                        if (err) throw err;
-                    });
-                }
-            });
+            // log(1, "processAccount()", "remove file in "+datadir);
+            // fs.readdir(datadir, (err, files) => {
+            //     if (err) throw err;
+            //     for (const file of files) {
+            //         fs.unlink(path.join(datadir, file), err => {
+            //             if (err) throw err;
+            //         });
+            //     }
+            // });
+            rimraf.sync(datadir);
             resolve(0);
         }
     });
@@ -767,10 +769,10 @@ async function run() {
     // }
 
     // await captchaSolver.test();
-    await processAccount("17j4ck@gmail.com", 'test1234&', '', '', '');
-    // while (1) {
-    //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
-    // }
+    // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '');
+    while (1) {
+        await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
+    }
 }
 
 run();
