@@ -625,7 +625,7 @@ function processAccount(email, password, protocol, ip, port) {
                 if (text != "Error message!") {
                     log(2, 'processAccount()', email+" "+text);
                     if (text.includes("Please check your email inbox")) {
-                        sleep(30000);
+                        await sleep(30000);
                         var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
                         await ipVerification(link, browser, email).catch((e) => {throw e});
                         pages = await browser.pages();
