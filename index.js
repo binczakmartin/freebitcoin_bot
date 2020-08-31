@@ -649,8 +649,8 @@ function processAccount(email, password, protocol, ip, port, id) {
                         pages = await browser.pages();
                         pages.map(async (page) => await page.close())
                         await browser.close();
-                        await deleteDir(datadir+"-"+id)
-                        await processAccount(email, password, protocol, ip, port);
+                        // await deleteDir(datadir+"-"+id)
+                        await processAccount(email, password, protocol, ip, port, id);
                         return resolve(0);
                     } else if (text.includes("Too many tries")) {
                         await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
@@ -772,12 +772,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await processAvailableAccounts();
-    }
+    // while (1) {
+    //     await processAvailableAccounts();
+    // }
 
     // await captchaSolver.test();
-    // await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '', 1);
+    await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '', 1);
 }
 
 run();
