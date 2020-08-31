@@ -614,6 +614,7 @@ function processAccount(email, password, protocol, ip, port, id) {
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
         );
+        log(1, "processAccount()", "datadir => "+datadir+"-"+id)
         const browser = await puppeteer.launch({
             defaultViewport: null,
             headless:headless,
