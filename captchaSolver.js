@@ -31,7 +31,7 @@ module.exports = {
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
             recaptcha2 = frame 
           }
-          // console.log(frame.url());
+          console.log(frame.url());
         }
   
         // console.log("get the recaptcha checkbox");
