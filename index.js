@@ -122,6 +122,23 @@ async function deleteDir(dir) {
     })
 }
 
+async function createDir(dir) {
+    return new Promise((resolve) => {
+        exec("rm -rf "+dir, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return resolve(1);
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                return resolve(1);
+            }
+            // console.log(`stdout: ${stdout}`);
+            return resolve(1);
+        });
+    })
+}
+
 async function init() {
     printTitle();
     log(1, 'init()', 'sync proxies table');
@@ -615,6 +632,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
         );
         log(1, "processAccount()", "datadir => "+datadir+"-"+id)
+        await createDir(datadir+"-"+id);
         const browser = await puppeteer.launch({
             defaultViewport: null,
             headless:headless,
