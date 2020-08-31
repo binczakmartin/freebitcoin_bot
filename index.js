@@ -407,9 +407,9 @@ function getVerificationLink(email, password, situation) {
                                         }
                                     }
                                 }
-                                connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
-                                    if (err) console.log(err);
-                                });
+                                // connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
+                                //     if (err) console.log(err);
+                                // });
                             }
                             log(2, 'getVerificationLink()', email+' no message received from freebitco.in');
                             resolve(0);
@@ -777,10 +777,10 @@ async function run() {
     // }
 
     // await captchaSolver.test();
-    await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '', 1);
-    // while (1) {
-    //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
-    // }
+    // await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '', 1);
+    while (1) {
+        await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
+    }
 }
 
 run();
