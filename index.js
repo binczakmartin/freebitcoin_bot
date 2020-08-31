@@ -13,7 +13,7 @@ const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
-const rimraf = require("rimraf");
+const { exec } = require("child_process");
 
 const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
@@ -103,6 +103,23 @@ function log(type, function_name, message) {
     if (verbose_level == 3) {
         console.log(str);
     }
+}
+
+async function deleteDir(dir) {
+    return new Promise((resolve) => {
+        exec("rm -rf "+dir, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return resolve(1);
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                return resolve(1);
+            }
+            // console.log(`stdout: ${stdout}`);
+            return resolve(1);
+        });
+    })
 }
 
 async function init() {
@@ -562,7 +579,7 @@ async function getWinnings(page, email) {
     });
 }
 
-function processAccount(email, password, protocol, ip, port) {
+function processAccount(email, password, protocol, ip, port, id) {
     return new Promise(async resolve => {
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
@@ -605,7 +622,7 @@ function processAccount(email, password, protocol, ip, port) {
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
-                // '--user-data-dir='+datadir,
+                '--user-data-dir='+datadir+"-"+id,
                 '--window-size=1500,2000',
             ],
         });
@@ -632,6 +649,7 @@ function processAccount(email, password, protocol, ip, port) {
                         pages = await browser.pages();
                         pages.map(async (page) => await page.close())
                         await browser.close();
+                        await deleteDir(datadir+"-"+id)
                         await processAccount(email, password, protocol, ip, port);
                         return resolve(0);
                     } else if (text.includes("Too many tries")) {
@@ -692,16 +710,7 @@ function processAccount(email, password, protocol, ip, port) {
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
-            // log(1, "processAccount()", "remove file in "+datadir);
-            // fs.readdir(datadir, (err, files) => {
-            //     if (err) throw err;
-            //     for (const file of files) {
-            //         fs.unlink(path.join(datadir, file), err => {
-            //             if (err) throw err;
-            //         });
-            //     }
-            // });
-            // rimraf.sync(datadir);
+            await deleteDir(datadir+"-"+id)
             resolve(0);
         }
     });
@@ -732,7 +741,7 @@ async function processAvailableAccounts() {
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
                         log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+proxyUrl);
-                        promiseTab.push(processAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port));
+                        promiseTab.push(processAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port, elem.id));
                         await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
                     }
                     i++;
@@ -763,12 +772,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await processAvailableAccounts();
-    }
+    // while (1) {
+    //     await processAvailableAccounts();
+    // }
 
     // await captchaSolver.test();
-    // await processAccount("17j4ck.4@gmail.com", 'test1234&', '', '', '');
+    await processAccount("17j4ck.1@gmail.com", 'test1234&', '', '', '', 1);
     // while (1) {
     //     await getVerificationLink("17j4ck.1@gmail.com", "test1234&", 0);
     // }
