@@ -619,7 +619,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             defaultViewport: null,
             headless:headless,
             args: [
-                // '--proxy-server='+protocol+'://'+ip+':'+port,
+                '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
@@ -774,12 +774,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    // while (1) {
-    //     await processAvailableAccounts();
-    // }
+    while (1) {
+        await processAvailableAccounts();
+    }
 
     // await captchaSolver.test();
-    await processAccount("17j4ck.2@gmail.com", 'test1234&', '', '', '', 1);
+    // await processAccount("17j4ck.2@gmail.com", 'test1234&', '', '', '', 1);
 }
 
 run();
