@@ -23,15 +23,17 @@ module.exports = {
   
         let recaptcha1;
         let recaptcha2;
-  
+        await sleep(rdn(2000, 7000));
+
         for (const frame of page.mainFrame().childFrames()){
           if (frame.url().includes('https://www.google.com/recaptcha/api2/anchor')){
               try {
                 var status = await frame.$('#recaptcha-accessible-status')
                 var statusText = await frame.evaluate(status => status.textContent, status);
+                console.log(statusText)
                 recaptcha1 = frame;
               } catch (error) {
-                console.log(error);
+                console.log("test 12345 => "+error);
               }
            }
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
