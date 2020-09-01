@@ -793,12 +793,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    // while (1) {
-    //     await processAvailableAccounts();
-    // }
+    while (1) {
+        await processAvailableAccounts();
+    }
 
     // await captchaSolver.test();
-    await processAccount("17j4ck.2@gmail.com", 'test1234&', '', '', '', 1);
+    // await processAccount("17j4ck.2@gmail.com", 'test1234&', '', '', '', 1);
 }
 
 run();
