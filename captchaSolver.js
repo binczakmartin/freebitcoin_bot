@@ -26,12 +26,18 @@ module.exports = {
   
         for (const frame of page.mainFrame().childFrames()){
           if (frame.url().includes('https://www.google.com/recaptcha/api2/anchor')){
-               recaptcha1 = frame 
+              try {
+                var status = await frame.$('#recaptcha-accessible-status')
+                var statusText = await frame.evaluate(status => status.textContent, status);
+                recaptcha1 = frame;
+              } catch (error) {
+                console.log(error);
+              }
            }
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
             recaptcha2 = frame 
           }
-          console.log(frame.url());
+          // console.log(frame.url());
         }
   
         // console.log("get the recaptcha checkbox");
@@ -45,7 +51,7 @@ module.exports = {
         var status = await recaptcha1.$('#recaptcha-accessible-status')
         var statusText = await recaptcha1.evaluate(status => status.textContent, status);
         if (statusText.includes("You are verified")) {
-          console.log(statusText);
+          // console.log(statusText);
           return resolve(1);
         } 
 
@@ -74,7 +80,7 @@ module.exports = {
         const audioBytes = await recaptcha2.evaluate(audioLink => {
           return (async () => {
             const response = await window.fetch(audioLink)
-            console.log("response = "+response)
+            // console.log("response = "+response)
             const buffer = await response.arrayBuffer()
             return Array.from(new Uint8Array(buffer))
           })()
@@ -92,7 +98,7 @@ module.exports = {
           }
         })
         const audioTranscript = response.data._text.trim()
-        // console.log('test12  '+audioTranscript);
+        console.log('test12  '+audioTranscript);
         await sleep(rdn(2000, 7000));
 
         var audioResponse = recaptcha2.$('#audio-response');
