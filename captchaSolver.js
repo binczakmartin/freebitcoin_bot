@@ -28,6 +28,7 @@ module.exports = {
         for (const frame of page.mainFrame().childFrames()){
           if (frame.url().includes('https://www.google.com/recaptcha/api2/anchor')){
               try {
+                await recaptcha1.waitForSelector('#recaptcha-anchor', {timeout: 30000});
                 var status = await frame.$('#recaptcha-accessible-status')
                 var statusText = await frame.evaluate(status => status.textContent, status);
                 console.log(statusText)
@@ -39,7 +40,7 @@ module.exports = {
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
             recaptcha2 = frame 
           }
-          // console.log(frame.url());
+          console.log("test frame => "+frame.url());
         }
   
         // console.log("get the recaptcha checkbox");
