@@ -638,7 +638,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             defaultViewport: null,
             headless:headless,
             args: [
-                // '--proxy-server='+protocol+'://'+ip+':'+port,
+                '--proxy-server='+protocol+'://'+ip+':'+port,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
