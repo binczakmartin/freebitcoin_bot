@@ -14,6 +14,7 @@ const path = require('path');
 const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
 const { exec } = require("child_process");
+const simpleParser = require('mailparser').simpleParser;
 
 const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
@@ -402,7 +403,7 @@ function getVerificationLink(email, password, situation) {
                     var fetchOptions = {
                         bodies: ['HEADER', 'TEXT'],
                     };
-                    connection.search(searchCriteria, fetchOptions).then( function (messages) {
+                    connection.search(searchCriteria, fetchOptions).then( async function (messages) {
                         connection.on("error", function(e) {
                             log(3, "getVerificationLink()", email+" An error occured."+e);
                             return reject(e);
@@ -414,9 +415,10 @@ function getVerificationLink(email, password, situation) {
                             for(var i = messages.length - 1; i >= 0; i--) {
                             // for(var i = 0; i < messages.length; i++) {
                                 var body = messages[i].parts[index].body;
-                                // console.log(body);
-                                if (body.includes("https://freebitco.in/?op=email_verify&i") && body.includes(keywords)) {
-                                    var tab = body.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
+                                let parsed = await simpleParser(body);
+                                console.log(parsed.text);
+                                if (parsed.text.includes("https://freebitco.in/?op=email_verify&i") && parsed.text.includes(keywords)) {
+                                    var tab = parsed.text.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
                                     for (elem of tab) {
                                         if (elem.indexOf("https://freebitco.in/?op=email_verify") !== -1) {
                                             log(1, 'getVerificationLink()', email+" "+elem);
@@ -424,9 +426,9 @@ function getVerificationLink(email, password, situation) {
                                         }
                                     }
                                 }
-                                // connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
-                                //     if (err) console.log(err);
-                                // });
+                                connection.addFlags(messages[i].attributes.uid, "\Deleted", (err) => {
+                                    if (err) console.log(err);
+                                });
                             }
                             log(2, 'getVerificationLink()', email+' no message received from freebitco.in');
                             resolve(0);
@@ -532,12 +534,19 @@ async function logIn(page, email, password) {
 async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
+            log(1, 'rollAccount()', email+" click roll button");
+            await page.waitForSelector('#free_play_form_button', {timeout: 30000});
+            var element = await page.$("#free_play_form_button");
+            await element.click();
+            await sleep(4000);
             log(1, "rollAccount()", email+" trying to resolve captcha");
+            // await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
+                await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
                 log(1, 'rollAccount()', email+" click play without captcha button");
                 await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
-                var element = await page.$("#play_without_captchas_button");
+                element = await page.$("#play_without_captchas_button");
                 await element.click();
                 await sleep(2000);
             }
@@ -732,7 +741,7 @@ function processAccount(email, password, protocol, ip, port, id) {
         } finally {
             await sleep(10000);
             await deleteDir(datadir+"-"+id)
-            resolve(0);
+            return resolve(0);
         }
     });
 }
@@ -747,6 +756,7 @@ async function processAvailableAccounts() {
             var i = 0;
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            proxies = shuffle(proxies);
             winnings = 0;
             nb_roll = 0;
             log(1, "processAvailableAccounts()", proxies.length+" available proxies");
@@ -789,7 +799,7 @@ async function run() {
 
     // await getFreeProxies();
     // await getProxies();
-    // await checkAllProxies();
+    await checkAllProxies();
 
     log(1, 'run()', 'start rolling accounts');
 
@@ -797,8 +807,9 @@ async function run() {
         await processAvailableAccounts();
     }
 
+    // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
     // await captchaSolver.test();
-    // await processAccount("17j4ck.2@gmail.com", 'test1234&', '', '', '', 1);
+    // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '', 1);
 }
 
 run();
