@@ -23,7 +23,7 @@ var winnings = 0;
 var nb_roll = 0;
 var nb_acc = 5;
 var nb_proxies = 1000;
-var verbose_level = 3;
+var verbose_level = 1;
 
 db.options.logging = false;
 
@@ -799,8 +799,8 @@ async function processAvailableAccounts() {
             log(3, 'processAvailableAccounts()', e);
         } finally {
             log(1, "processAvailableAccounts()", nb_roll+"/"+accLength+" roll - total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
-            log(1, "processAvailableAccounts()", "wait for 30 seconds")
-            await sleep(30000);
+            log(1, "processAvailableAccounts()", "wait for 60 seconds")
+            await sleep(60000);
             resolve(0);
         }
     });
