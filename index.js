@@ -413,10 +413,9 @@ function getVerificationLink(email, password, situation) {
                             resolve(0);
                         } else {       
                             for(var i = messages.length - 1; i >= 0; i--) {
-                            // for(var i = 0; i < messages.length; i++) {
                                 var body = messages[i].parts[index].body;
                                 let parsed = await simpleParser(body);
-                                console.log(parsed.text);
+                                // console.log(parsed.text);
                                 if (parsed.text.includes("https://freebitco.in/?op=email_verify&i") && parsed.text.includes(keywords)) {
                                     var tab = parsed.text.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gm)
                                     for (elem of tab) {
@@ -480,7 +479,7 @@ async function closePushModal(page, email) {
             log(1, 'closePushModal()', email+" click notification modal button big ");
             await element.click();
         } catch (e) {
-            log(2, 'closePushModal()', email+" "+e);
+            // log(2, 'closePushModal()', email+" "+e);
         } finally {
             resolve(page);
         }
@@ -494,7 +493,7 @@ async function closeSetCookie(page, email) {
             log(1, 'closeSetCookie()', email+" click cookies banner button");
             await element.click();
         } catch (e) {
-            log(2, 'closeSetCookie()', email+" "+e);
+            // log(2, 'closeSetCookie()', email+" "+e);
         } finally {
             resolve(page);
         }
@@ -636,15 +635,15 @@ function processAccount(email, password, protocol, ip, port, id) {
         //     require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')(),
         // );
         
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/navigator.webdriver')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/sourceurl')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/navigator.webdriver')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/sourceurl')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
+        );
 
         log(1, "processAccount()", "datadir => "+datadir+"-"+id)
         await createDir(datadir+"-"+id);
