@@ -95,7 +95,7 @@ function log(type, function_name, message) {
       str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
     str = str + " \x1b[38;5;134m"+function_name+": \x1b[0m"+message;
-    if (verbose_level <= 2 && (type == 3 || (function_name == "processAvailableAccounts()") || function_name == "run()")) {
+    if (verbose_level <= 2 && (type == 3 || (function_name == "processAvailableAccounts()") || function_name == "processAccount()")) {
         console.log(str);
     }
     if (verbose_level == 2 && type == 2) {
@@ -650,7 +650,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
         );
 
-        log(1, "processAccount()", "datadir => "+datadir+"-"+id)
+        // log(1, "processAccount()", "datadir => "+datadir+"-"+id)
         await createDir(datadir+"-"+id);
         await sleep(rdn(2000, 5000))
         const browser = await puppeteer.launch({
@@ -680,7 +680,7 @@ function processAccount(email, password, protocol, ip, port, id) {
                 var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
                 var text = await page.evaluate(element => element.textContent, element);
                 if (text != "Error message!") {
-                    log(2, 'processAccount()', email+" "+text);
+                    // log(2, 'processAccount()', email+" "+text);
                     if (text.includes("Please check your email inbox")) {
                         await sleep(rdn(10000, 30000));
                         var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
@@ -716,7 +716,7 @@ function processAccount(email, password, protocol, ip, port, id) {
                 element = await page.$("#free_play_error");
                 text = await page.evaluate(element => element.textContent, element);
                 if (text.includes("You need to verify your email before you can play")) {
-                    log(2, 'processAccount()', email+" "+text);
+                    // log(2, 'processAccount()', email+" "+text);
                     await sleep(rdn(10000, 30000));
                     var link = await getVerificationLink(email, password, 1);
                     await ipVerification(link, browser, email);
@@ -725,10 +725,10 @@ function processAccount(email, password, protocol, ip, port, id) {
                     await browser.close();
                     await processAccount(email, password, protocol, ip, port);
                 } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
-                    log(2, 'processAccount()', email+" "+text);
+                    // log(2, 'processAccount()', email+" "+text);
                     await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
                 } else if (text) {
-                    log(2, 'processAccount()', email+" "+text);
+                    // log(2, 'processAccount()', email+" "+text);
                     await Accounts.update({ message1: text }, {where: {email: email}});
                 }
                 pages = await browser.pages();
@@ -736,16 +736,18 @@ function processAccount(email, password, protocol, ip, port, id) {
                 await browser.close();
                 return resolve(0);
             } catch (e) {
-                log(1, 'processAccount()', email+" no error detected on roll "+e);
+                // log(1, 'processAccount()', email+" no error detected on roll "+e);
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
+            log(3, 'processAccount()', email+' success');
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
         } catch (e) {
             await Accounts.update({ message2: e.message }, {where: {email: email}});
-            log(3, 'processAccount()', email+' '+e);
+            // log(3, 'processAccount()', email+' '+e);
+            log(3, 'processAccount()', email+' error');
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
