@@ -615,28 +615,28 @@ async function getWinnings(page, email) {
 function processAccount(email, password, protocol, ip, port, id) {
     return new Promise(async resolve => {
 
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
-        );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
-        );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
-        );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
-        );
-        
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
+        // );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
+        // );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
+        // );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
+        // );
+
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
         // );
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
         // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
+        );
 
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')(),
@@ -816,12 +816,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    while (1) {
-        await processAvailableAccounts();
-    }
+    // while (1) {
+    //     await processAvailableAccounts();
+    // }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
-    // await captchaSolver.test();
+    await captchaSolver.test();
     // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '', 1);
 }
 
