@@ -628,9 +628,9 @@ function processAccount(email, password, protocol, ip, port, id) {
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
         // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
+        );
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
         // );
