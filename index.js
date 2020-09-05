@@ -95,7 +95,7 @@ function log(type, function_name, message) {
       str = "\x1b[38;5;1m[ERROR]\x1b[0m "+new Date().toISOString().slice(0, 23).replace('T',' ');
     }
     str = str + " \x1b[38;5;134m"+function_name+": \x1b[0m"+message;
-    if (verbose_level <= 2 && (type == 3 || function_name == "processAvailableAccounts")) {
+    if (verbose_level <= 2 && (type == 3 || (function_name == "processAvailableAccounts()") || function_name == "run()")) {
         console.log(str);
     }
     if (verbose_level == 2 && type == 2) {
