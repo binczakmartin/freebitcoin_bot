@@ -70,7 +70,7 @@ function printTitle() {
     +"888    888    Y8b.     Y8b.     888 d88P Y88b. Y88b.\n"
     +"888    888     \"Y8888   \"Y8888  88888P\"   \"Y888 \"Y8888P \x1b[0m\n";
     for (var i = 0; i < str.length; i++) {
-        str2 += "\x1b[38;5;"+rdn(0,256)+"m"+str[i]+"\x1b[0m\n";
+        str2 += "\x1b[38;5;"+rdn(0,256)+"m"+str[i]+"\x1b[0m";
     }
     console.log(str2);
 }
