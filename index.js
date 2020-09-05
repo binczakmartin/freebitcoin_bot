@@ -70,7 +70,9 @@ function printTitle() {
         [12, 77, 143, 83],
         [32, 84, 23, 95, 167],
         [93, 62, 135, 191, 169],
-        [11, 55, 92, 145, 234, 269]
+        [11, 55, 92, 145, 234, 269],
+        [96, 43, 67, 82, 27, 73, 99, 91],
+        [62, 61, 79, 122, 165, 189, 238, 252]
     ] 
         
     var str2 = "";
@@ -817,8 +819,8 @@ async function processAvailableAccounts() {
             log(3, 'processAvailableAccounts()', e);
         } finally {
             log(1, "processAvailableAccounts()", nb_roll+"/"+accLength+" roll - total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
-            log(1, "processAvailableAccounts()", "wait for 60 seconds")
-            await sleep(60000);
+            log(1, "processAvailableAccounts()", "wait for 20 seconds")
+            await sleep(20000);
             resolve(0);
         }
     });
