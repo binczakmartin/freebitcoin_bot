@@ -541,7 +541,8 @@ async function rollAccount(page, email, password) {
             // await sleep(4000);
             await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
             log(1, "rollAccount()", email+" trying to resolve captcha");
-            // await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
+            await sleep(4000);
+            await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
@@ -687,7 +688,6 @@ function processAccount(email, password, protocol, ip, port, id) {
                     } else {
                         await Accounts.update({ message1: text }, {where: {email: email}});
                     }
-                    log(2, "processAccount()", "test2 => "+text);
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
                     await browser.close();
