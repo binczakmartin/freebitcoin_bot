@@ -670,7 +670,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             await page.setViewport({ width: 1500, height: 2000 })
             await page.goto('https://freebitco.in/?op=signup_page');
             await sleep(rdn(9000, 13000));
-            log(1, 'processAccount()', email+" "+page.url());
+            // log(1, 'processAccount()', email+" "+page.url());
             if (page.url() != "https://freebitco.in/?op=home") {
                 page = await closePushModal(page, email);
                 page = await closeSetCookie(page, email);
