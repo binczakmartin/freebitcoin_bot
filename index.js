@@ -547,7 +547,9 @@ async function rollAccount(page, email, password) {
             await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
             log(1, "rollAccount()", email+" trying to resolve captcha");
             await sleep(rdn(2000, 5000));
+            page = await closePushModal(page, email);
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
+
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
@@ -603,7 +605,7 @@ async function getWinnings(page, email) {
             var acc_winnings = Number(text);
             winnings += acc_winnings;
             nb_roll++;
-            log(1, "getWinnings()", " roll winnings "+acc_winnings.toFixed(8))
+            log(1, "getWinnings()", email+" roll winnings "+acc_winnings.toFixed(8))
             resolve(0);
         } catch (e) {
             log(1, 'getWinnings()', email+" can't get winnings");
