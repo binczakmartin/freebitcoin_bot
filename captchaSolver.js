@@ -149,7 +149,8 @@ module.exports = {
         }
       } catch (e) {
         console.log(e)
-        reject(e);
+        //reject(e);
+        return resolve(0);
       }
     })
   },

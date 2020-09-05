@@ -626,19 +626,19 @@ function processAccount(email, password, protocol, ip, port, id) {
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
         // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
+        );
 
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
+        );
 
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')(),
