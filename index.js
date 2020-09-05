@@ -174,6 +174,12 @@ function makeInscriptionCode(length) {
   return result;
 }
 
+function rdn (min, max) {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min)) + min
+  }
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -240,7 +246,7 @@ async function getFreeProxies() {
             await page.goto('https://www.proxyscan.io/');
             await page.click('#layout-wrapper > div > div.page-content > div > div:nth-child(1) > div > div > ul > li:nth-child(3) > p > a');
             await page.click('#layout-wrapper > div > div.page-content > div > div:nth-child(1) > div > div > ul > li:nth-child(4) > p > a');
-            await sleep(5000);
+            await sleep(rdn(2000, 5000));
             await insertProxies('socks4', path.normalize(directory+'/SOCKS4-proxies.txt'));
             await insertProxies('socks5', path.normalize( directory+'/SOCKS5-proxies.txt'));
             log(1, 'getFreeProxies()', 'https://proxyscrape.com/free-proxy-list');
@@ -460,7 +466,7 @@ async function ipVerification(link, browser, email) {
             await page.waitForSelector('body > center > div > input[type=button]:nth-child(2)', {timeout: 30000});
             await page.click('body > center > div > input[type=button]:nth-child(2)');
             await page.bringToFront();
-            await sleep(10000);
+            await sleep(rdn(5000, 10000));
             await page.goto('about:blank');
             await page.close;
             resolve(0);
@@ -503,21 +509,21 @@ async function closeSetCookie(page, email) {
 async function logIn(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            await sleep(5000);
+            await sleep(rdn(2000, 5000));
             log(1, 'logIn()', email+" try to logIn");
             await page.waitForSelector("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a", {timeout: 30000});
             var element = await page.$("body > div.large-12.fixed > div > nav > section > ul > li.login_menu_button > a");
             await element.click();
-            await sleep(1000);
+            await sleep(rdn(1000, 3000));
             // log(1, 'logIn()', email+" fill email");
             await page.waitForSelector('#login_form_btc_address', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_btc_address')).value = text; }, email);
-            await sleep(1000);
+            await sleep(rdn(1000, 3000));
             // log(1, 'logIn()', email+" fill password '"+password+"'");
             await page.waitForSelector('#login_form_password', {timeout: 30000});
             await page.evaluate((text) => { (document.getElementById('login_form_password')).value = text; }, password);
             // log(1, 'logIn()', email+" click login button");
-            await sleep(1000);
+            await sleep(rdn(1000, 3000));
             await page.waitForSelector('#login_button', {timeout: 30000});
             element = await page.$("#login_button");
             await element.click();
@@ -540,7 +546,7 @@ async function rollAccount(page, email, password) {
             // await sleep(4000);
             await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
             log(1, "rollAccount()", email+" trying to resolve captcha");
-            await sleep(4000);
+            await sleep(rdn(2000, 5000));
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
@@ -549,14 +555,14 @@ async function rollAccount(page, email, password) {
                 await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
                 element = await page.$("#play_without_captchas_button");
                 await element.click();
-                await sleep(2000);
+                await sleep(rdn(2000, 5000));
             }
-            await sleep(3000);
+            await sleep(rdn(2000, 5000));
             log(1, 'rollAccount()', email+" click roll button");
             await page.waitForSelector('#free_play_form_button', {timeout: 30000});
             element = await page.$("#free_play_form_button");
             await element.click();
-            await sleep(6000);
+            await sleep(rdn(2000, 5000));
             // await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             return resolve(page);
         } catch (e) {
@@ -609,18 +615,19 @@ async function getWinnings(page, email) {
 function processAccount(email, password, protocol, ip, port, id) {
     return new Promise(async resolve => {
 
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
-        // );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
+        );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
+        );
+        
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
         // );
@@ -647,7 +654,7 @@ function processAccount(email, password, protocol, ip, port, id) {
 
         log(1, "processAccount()", "datadir => "+datadir+"-"+id)
         await createDir(datadir+"-"+id);
-        await sleep(3000)
+        await sleep(rdn(2000, 5000))
         const browser = await puppeteer.launch({
             defaultViewport: null,
             headless:headless,
@@ -664,20 +671,20 @@ function processAccount(email, password, protocol, ip, port, id) {
             var page = await browser.newPage();
             await page.setViewport({ width: 1500, height: 2000 })
             await page.goto('https://freebitco.in/?op=signup_page');
-            await sleep(10000);
+            await sleep(rdn(9000, 13000));
             log(1, 'processAccount()', email+" "+page.url());
             if (page.url() != "https://freebitco.in/?op=home") {
                 page = await closePushModal(page, email);
                 page = await closeSetCookie(page, email);
-                await sleep(5000);
+                await sleep(rdn(2000, 5000));
                 page = await logIn(page, email, password).catch(e => {throw e});
-                await sleep(6000);
+                await sleep(rdn(2000, 5000));
                 var element = await page.$("#reward_point_redeem_result_container_div > p > span.reward_point_redeem_result");
                 var text = await page.evaluate(element => element.textContent, element);
                 if (text != "Error message!") {
                     log(2, 'processAccount()', email+" "+text);
                     if (text.includes("Please check your email inbox")) {
-                        await sleep(30000);
+                        await sleep(rdn(10000, 30000));
                         var link = await getVerificationLink(email, password, 0).catch((e) => { throw e});
                         await ipVerification(link, browser, email).catch((e) => {throw e});
                         pages = await browser.pages();
@@ -697,22 +704,22 @@ function processAccount(email, password, protocol, ip, port, id) {
                     return resolve(0);
                 }
             }
-            await sleep(15000);
+            await sleep(rdn(5000, 15000));
             page = await closeSetCookie(page, email);
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance}, {where: {email: email}});
-            await sleep(15000);
+            await sleep(rdn(6000, 12000));
             page = await rollAccount(page, email, password).catch(e => {throw e});
-            await sleep(15000);
+            await sleep(rdn(6000, 12000));
             // await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
             await getWinnings(page, email);
             try {
                 await page.waitForSelector('#free_play_error', {timeout: 30000});
                 element = await page.$("#free_play_error");
                 text = await page.evaluate(element => element.textContent, element);
-                log(2, 'processAccount()', email+" "+text);
                 if (text.includes("You need to verify your email before you can play")) {
-                    await sleep(30000);
+                    log(2, 'processAccount()', email+" "+text);
+                    await sleep(rdn(10000, 30000));
                     var link = await getVerificationLink(email, password, 1);
                     await ipVerification(link, browser, email);
                     pages = await browser.pages();
@@ -720,8 +727,10 @@ function processAccount(email, password, protocol, ip, port, id) {
                     await browser.close();
                     await processAccount(email, password, protocol, ip, port);
                 } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
+                    log(2, 'processAccount()', email+" "+text);
                     await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
                 } else if (text) {
+                    log(2, 'processAccount()', email+" "+text);
                     await Accounts.update({ message1: text }, {where: {email: email}});
                 }
                 pages = await browser.pages();
@@ -743,7 +752,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
-            await sleep(10000);
+            await sleep(rdn(6000, 12000));
             await deleteDir(datadir+"-"+id)
             return resolve(0);
         }

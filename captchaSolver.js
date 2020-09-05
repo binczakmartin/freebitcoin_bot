@@ -36,7 +36,7 @@ module.exports = {
                 statusText = await frame.evaluate(status => status.textContent, status);
                 console.log(statusText)
               } catch (error) {
-                console.log("test 12345 => "+error);
+                // console.log("test 12345 => "+error);
               }
            }
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
@@ -63,8 +63,8 @@ module.exports = {
           console.log("can't click on the recaptcha1 button")
         }
 
-        var audioButton = await recaptcha2.$('#recaptcha-audio-button')
         try {
+          var audioButton = await recaptcha2.$('#recaptcha-audio-button')
           await audioButton.click({ delay: rdn(1000, 3000) })
         } catch (e) {
           console.log("cant't click play audio challenge")
