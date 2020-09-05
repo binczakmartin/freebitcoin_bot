@@ -61,18 +61,18 @@ var Accounts = db.define('accounts', {
 function printTitle() {
     console.log('\033c');
     var str2 = "";
-    var str = "\x1b[38;5;208m .d888                          888      888\n"
+    var str = " .d888                          888      888\n"
     +"d88P\"                           888      888\n"
     +"888                             888      888\n"
     +"888888 888d888 .d88b.   .d88b.  88888b.  888888 .d8888b\n"
     +"888    888P\"  d8P  Y8b d8P  Y8b 888 \"88b 888   d88P\"\n"
     +"888    888    88888888 88888888 888  888 888   888\n"
     +"888    888    Y8b.     Y8b.     888 d88P Y88b. Y88b.\n"
-    +"888    888     \"Y8888   \"Y8888  88888P\"   \"Y888 \"Y8888P \x1b[0m\n";
+    +"888    888     \"Y8888   \"Y8888  88888P\"   \"Y888 \"Y8888P ";
     for (var i = 0; i < str.length; i++) {
         str2 += "\x1b[38;5;"+rdn(0,256)+"m"+str[i]+"\x1b[0m";
     }
-    console.log(str2);
+    console.log(str2+"\n");
 }
 
 function shuffle(array) {
