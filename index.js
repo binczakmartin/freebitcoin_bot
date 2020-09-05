@@ -617,28 +617,28 @@ async function getWinnings(page, email) {
 function processAccount(email, password, protocol, ip, port, id) {
     return new Promise(async resolve => {
 
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
+        );
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
         // );
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
         // );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
-        );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
+        // );
 
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
-        );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
-        );
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
-        );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
+        // );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
+        // );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/navigator.languages')(),
+        // );
 
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/navigator.plugins')(),
