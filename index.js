@@ -762,11 +762,13 @@ async function processAvailableAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
+            printTitle();
             var start = new Date().getTime();
             var d = new Date();
             d.setHours(d.getHours() - 1);
             var i = 0;
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
+            var accLength = accounts.length;
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             proxies = shuffle(proxies);
             winnings = 0;
@@ -796,7 +798,7 @@ async function processAvailableAccounts() {
         } catch (e) {
             log(3, 'processAvailableAccounts()', e);
         } finally {
-            log(1, "processAvailableAccounts()", nb_roll+"/"+accounts.length+" roll succeed - total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
+            log(1, "processAvailableAccounts()", nb_roll+"/"+accLength+" roll - total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
             log(1, "processAvailableAccounts()", "wait for 30 seconds")
             await sleep(30000);
             resolve(0);
