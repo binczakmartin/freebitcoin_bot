@@ -816,12 +816,12 @@ async function run() {
 
     log(1, 'run()', 'start rolling accounts');
 
-    // while (1) {
-    //     await processAvailableAccounts();
-    // }
+    while (1) {
+        await processAvailableAccounts();
+    }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
-    await captchaSolver.test();
+    // await captchaSolver.test();
     // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '', 1);
 }
 
