@@ -628,7 +628,7 @@ function processAccount(email, password, protocol, ip, port, id) {
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
         // );
-        
+
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
         );
@@ -796,9 +796,9 @@ async function processAvailableAccounts() {
         } catch (e) {
             log(3, 'processAvailableAccounts()', e);
         } finally {
-            log(1, "processAvailableAccounts()", "nb of roll = "+nb_roll+" total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
-            log(1, "processAvailableAccounts()", "wait for 10 seconds")
-            await sleep(10000);
+            log(1, "processAvailableAccounts()", nb_roll+"/"+accounts.length+" roll succeed - total winnings = "+Number(winnings).toFixed(8)+" exec time = "+timeConversion(time));
+            log(1, "processAvailableAccounts()", "wait for 30 seconds")
+            await sleep(30000);
             resolve(0);
         }
     });
