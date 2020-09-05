@@ -60,7 +60,7 @@ var Accounts = db.define('accounts', {
 
 function printTitle() {
     console.log('\033c');
-    var colorTab = [196, 192, 166, 130, 94, 52, 1]
+    var colorTab = [196, 192, 166, 130, 94, 52, 1], 136, 137, 172, 184]
     var str2 = "";
     var str = " .d888                          888      888\n"
     +"d88P\"                           888      888\n"
