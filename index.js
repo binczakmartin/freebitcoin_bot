@@ -60,7 +60,7 @@ var Accounts = db.define('accounts', {
 
 function printTitle() {
     console.log('\033c');
-    var str = "\x1b[38;5;96m .d888                          888      888\n"
+    var str = "\x1b[38;5;208m .d888                          888      888\n"
     +"d88P\"                           888      888\n"
     +"888                             888      888\n"
     +"888888 888d888 .d88b.   .d88b.  88888b.  888888 .d8888b\n"
