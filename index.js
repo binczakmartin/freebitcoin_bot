@@ -625,9 +625,10 @@ function processAccount(email, password, protocol, ip, port, id) {
             require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
         );
 
-        puppeteer.use(
-            require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
-        );
+        // puppeteer.use(
+        //     require('puppeteer-extra-plugin-stealth/evasions/iframe.contentWindow')(),
+        // );
+        
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/media.codecs')(),
         );
