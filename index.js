@@ -618,9 +618,9 @@ function processAccount(email, password, protocol, ip, port, id) {
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
         );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
+        );
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/chrome.runtime')(),
         );
