@@ -83,8 +83,8 @@ module.exports = {
           }
 
           recaptcha2.waitForSelector('body > div > div > div.rc-audiochallenge-control > div > button', {timeout: 30000});
-          var playButton = await recaptcha2.$('body > div > div > div.rc-audiochallenge-control > div > button');
-          await playButton.click({ delay: rdn(1000, 3000) })
+          // var playButton = await recaptcha2.$('body > div > div > div.rc-audiochallenge-control > div > button');
+          // await playButton.click({ delay: rdn(1000, 3000) })
           await recaptcha2.waitForSelector('#audio-source', {timeout: 30000});
           var selector = '#audio-source';
           var prop = "src";

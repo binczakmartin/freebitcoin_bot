@@ -738,17 +738,18 @@ function processAccount(email, password, protocol, ip, port, id) {
                 log(1, 'processAccount()', email+" no error detected on roll "+e);
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
-            await Accounts.update({ balance: balance, last_roll: new Date(), message1: '', message2: '' }, {where: {email: email}});
+            await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
         } catch (e) {
-            await Accounts.update({ message2: e.message, last_roll: new Date()}, {where: {email: email}});
+            await Accounts.update({ message2: e.message }, {where: {email: email}});
             log(3, 'processAccount()', email+' '+e);
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
+            await Accounts.update({last_roll: new Date()}, {where: {email: email}});
             await sleep(rdn(6000, 12000));
             await deleteDir(datadir+"-"+id)
             return resolve(0);
