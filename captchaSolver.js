@@ -42,23 +42,26 @@ module.exports = {
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
             recaptcha2 = frame 
           }
-          // console.log("test frame => "+frame.url());
+          console.log("\ntest frame => "+frame.url());
         }
   
-        // console.log("get the recaptcha checkbox");
-        await recaptcha1.waitForSelector('#recaptcha-anchor', {timeout: 30000});
-        var checkbox = await recaptcha1.$('#recaptcha-anchor')
-        await checkbox.click({ delay: rdn(1000, 5000) })
-
-        await sleep(rdn(1000, 3000))
+        try {
+          // console.log("get the recaptcha checkbox");
+          var checkbox = await recaptcha1.$('#recaptcha-anchor')
+          await checkbox.click({ delay: rdn(1000, 5000) })
   
-        // console.log("check if captcha is validated");
-        var status = await recaptcha1.$('#recaptcha-accessible-status')
-        statusText = await recaptcha1.evaluate(status => status.textContent, status);
-        if (statusText.includes("You are verified")) {
-          // console.log(statusText);
-          return resolve(1);
-        } 
+          await sleep(rdn(1000, 3000))
+    
+          // console.log("check if captcha is validated");
+          var status = await recaptcha1.$('#recaptcha-accessible-status')
+          statusText = await recaptcha1.evaluate(status => status.textContent, status);
+          if (statusText.includes("You are verified")) {
+            // console.log(statusText);
+            return resolve(1);
+          } 
+        } catch (e) {
+          console.log("can't click on the recaptcha1 button")
+        }
 
         var audioButton = await recaptcha2.$('#recaptcha-audio-button')
         try {

@@ -685,7 +685,7 @@ function processAccount(email, password, protocol, ip, port, id) {
                     } else if (text.includes("Too many tries")) {
                         await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
                     } else {
-                        await Accounts.update({ message2: text }, {where: {email: email}});
+                        await Accounts.update({ message1: text }, {where: {email: email}});
                     }
                     log(2, "processAccount()", "test2 => "+text);
                     pages = await browser.pages();
@@ -800,7 +800,7 @@ async function run() {
 
     // await getFreeProxies();
     // await getProxies();
-    await checkAllProxies();
+    // await checkAllProxies();
 
     log(1, 'run()', 'start rolling accounts');
 
