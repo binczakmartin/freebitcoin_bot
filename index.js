@@ -534,11 +534,12 @@ async function logIn(page, email, password) {
 async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            log(1, 'rollAccount()', email+" click roll button");
-            await page.waitForSelector('#free_play_form_button', {timeout: 30000});
-            var element = await page.$("#free_play_form_button");
-            await element.click();
-            await sleep(4000);
+            // log(1, 'rollAccount()', email+" click roll button");
+            // await page.waitForSelector('#free_play_form_button', {timeout: 30000});
+            // var element = await page.$("#free_play_form_button");
+            // await element.click();
+            // await sleep(4000);
+            await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
             log(1, "rollAccount()", email+" trying to resolve captcha");
             // await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
