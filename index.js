@@ -539,17 +539,12 @@ async function logIn(page, email, password) {
 async function rollAccount(page, email, password) {
     return new Promise(async (resolve, reject) => {
         try {
-            // log(1, 'rollAccount()', email+" click roll button");
-            // await page.waitForSelector('#free_play_form_button', {timeout: 30000});
-            // var element = await page.$("#free_play_form_button");
-            // await element.click();
-            // await sleep(4000);
             await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
             log(1, "rollAccount()", email+" trying to resolve captcha");
             await sleep(rdn(2000, 5000));
             page = await closePushModal(page, email);
+            await sleep(rdn(2000, 5000));
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
-
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
@@ -620,9 +615,9 @@ function processAccount(email, password, protocol, ip, port, id) {
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
         );
-        // puppeteer.use(
-        //     require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
-        // );
+        puppeteer.use(
+            require('puppeteer-extra-plugin-stealth/evasions/chrome.csi')(),
+        );
         // puppeteer.use(
         //     require('puppeteer-extra-plugin-stealth/evasions/chrome.loadTimes')(),
         // );
