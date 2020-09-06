@@ -514,6 +514,7 @@ async function closePushModal(page, email) {
         }
     })
 }
+
 async function closeSetCookie(page, email) {
     return new Promise(async resolve => {
         try {
