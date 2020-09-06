@@ -34,7 +34,7 @@ module.exports = {
                 await recaptcha1.waitForSelector('#recaptcha-anchor', {timeout: 30000});
                 var status = await frame.$('#recaptcha-accessible-status')
                 statusText = await frame.evaluate(status => status.textContent, status);
-                console.log(statusText)
+                // console.log(statusText)
               } catch (error) {
                 // console.log("test 12345 => "+error);
               }
@@ -42,7 +42,7 @@ module.exports = {
            if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
             recaptcha2 = frame 
           }
-          console.log("\ntest frame => "+frame.url());
+          // console.log("\ntest frame => "+frame.url());
         }
   
         try {
@@ -60,25 +60,25 @@ module.exports = {
             return resolve(1);
           } 
         } catch (e) {
-          console.log("can't click on the recaptcha1 button")
+          // console.log("can't click on the recaptcha1 button")
         }
 
         try {
           var audioButton = await recaptcha2.$('#recaptcha-audio-button')
           await audioButton.click({ delay: rdn(1000, 3000) })
         } catch (e) {
-          console.log("cant't click play audio challenge")
+          // console.log("cant't click play audio challenge")
         }
 
         while (!statusText.includes("You are verified") && i != 5) {
-          console.log("loop "+i)
+          // console.log("loop "+i)
           await recaptcha2.waitForSelector('#recaptcha-audio-button', {timeout: 30000});
 
           await sleep(rdn(1000, 3000))
           var element = await recaptcha2.$('body > div > div > div:nth-child(1) > div.rc-doscaptcha-body > div')
           if (element !== null) {
             text = await recaptcha2.evaluate(element => element.textContent, element);
-            console.log(text);
+            // console.log(text);
             return resolve(0);
           }
 
@@ -112,7 +112,7 @@ module.exports = {
             }
           })
           const audioTranscript = response.data._text.trim()
-          console.log('test12  '+audioTranscript);
+          // console.log('test12  '+audioTranscript);
           await sleep(rdn(2000, 7000));
   
           await recaptcha2.evaluate((text) => { (document.getElementById('audio-response')).value = text; },audioTranscript);
@@ -125,7 +125,7 @@ module.exports = {
           status = await recaptcha1.$('#recaptcha-accessible-status')
           statusText = await recaptcha1.evaluate(status => status.textContent, status);
           if (statusText.includes("You are verified")) {
-            console.log(statusText);
+            // console.log(statusText);
             return resolve(1);
           } else {
             
@@ -133,7 +133,7 @@ module.exports = {
             try {
               await audioButton.click({ delay: rdn(1000, 3000) })
             } catch (e) {
-              console.log("cant't click play audio challenge")
+              // console.log("cant't click play audio challenge")
             }
 
             var verifyButton = await recaptcha2.$('#recaptcha-reload-button');
@@ -141,14 +141,14 @@ module.exports = {
             i++;
           }
         }
-        console.log(statusText);
+        // console.log(statusText);
         if (statusText.includes("You are verified")) {
           return resolve(1);
         } else {
           return resolve(0);
         }
       } catch (e) {
-        console.log(e)
+        // console.log(e)
         //reject(e);
         return resolve(0);
       }
@@ -205,7 +205,7 @@ module.exports = {
           var page = await browser.newPage();
           await page.setDefaultNavigationTimeout(60000);
           await page.goto("https://www.google.com/recaptcha/api2/demo");
-          console.log(await browser.userAgent());
+          // console.log(await browser.userAgent());
           await this.solve(page);
           await sleep(10000)
           await page.close()

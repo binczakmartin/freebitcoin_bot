@@ -72,8 +72,13 @@ function printTitle() {
         [93, 62, 135, 191, 169],
         [11, 55, 92, 145, 234, 269],
         [96, 43, 67, 82, 27, 73, 99, 91],
-        [62, 61, 79, 122, 165, 189, 238, 252]
-    ] 
+        [62, 61, 79, 122, 165, 189, 238, 252],
+        [255, 254, 253, 252, 190, 191, 192, 193, 194, 195],
+        [255, 254, 253, 252, 160, 161, 162, 163, 164, 165],
+        [255, 254, 253, 252, 24, 25, 26, 27, 28, 29, 30, 31],
+        [255, 254, 253, 252, 184, 185, 186, 187, 188, 189, 190],
+        [255, 254, 253, 252, 88, 89, 80, 91, 92, 93, 94, 95, 96, 97]
+    ]
         
     var str2 = "";
     var str = " .d888                          888      888\n"
@@ -565,12 +570,15 @@ async function rollAccount(page, email, password) {
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
+                log(1, "processAvailableAccount()", "can't resolve recaptcha 😢")
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
                 log(1, 'rollAccount()', email+" click play without captcha button");
                 await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
                 element = await page.$("#play_without_captchas_button");
                 await element.click();
                 await sleep(rdn(2000, 5000));
+            } else {
+                log(1, "processAvailableAccount()", "recaptcha resolved 😈")
             }
             await sleep(rdn(2000, 5000));
             log(1, 'rollAccount()', email+" click roll button");
