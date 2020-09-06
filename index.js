@@ -22,6 +22,7 @@ var nb_roll = 0;
 var nb_acc = 5;
 var nb_proxies = 1000;
 var verbose_level = 1;
+var nb_iter = 0;
 
 db.options.logging = false;
 
@@ -58,7 +59,7 @@ var Accounts = db.define('accounts', {
     tableName: 'accounts'
 });
 
-function printTitle() {
+function printTitle(nb) {
     console.log('\033c');
     var colorTab =[
         [196, 178, 197, 166, 130, 94, 52, 1, 130, 133, 126, 174, 202, 203, 196, 217, 208, 167],
@@ -93,7 +94,7 @@ function printTitle() {
     for (var i = 0; i < str.length; i++) {
         str2 += "\x1b[38;5;"+colorset[rdn(0,colorset.length-1)]+"m"+str[i]+"\x1b[0m";
     }
-    console.log(str2+"\n");
+    console.log(str2+" version "+nb);
 }
 
 function shuffle(array) {
@@ -164,7 +165,7 @@ async function createDir(dir) {
 }
 
 async function init() {
-    printTitle();
+    printTitle(0);
     log(1, 'init()', 'sync proxies table');
     await Proxies.sync({force: false});
     log(1, 'init()', 'sync accounts table');
@@ -791,7 +792,7 @@ async function processAvailableAccounts() {
     return new Promise(async resolve => {
         var promiseTab = [];
         try {
-            printTitle();
+            printTitle(nb_iter);
             var start = new Date().getTime();
             var d = new Date();
             d.setHours(d.getHours() - 1);
@@ -847,6 +848,7 @@ async function run() {
     log(1, 'run()', 'start rolling accounts');
 
     while (1) {
+        nb_iter++;
         await processAvailableAccounts();
     }
 
