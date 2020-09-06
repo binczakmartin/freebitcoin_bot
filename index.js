@@ -571,7 +571,7 @@ async function rollAccount(page, email, password) {
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
-                log(1, "processAvailableAccount()", "can't resolve recaptcha 😢")
+                log(1, "processAvailableAccounts()", "can't resolve recaptcha 😢")
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
                 log(1, 'rollAccount()', email+" click play without captcha button");
                 await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
@@ -579,7 +579,7 @@ async function rollAccount(page, email, password) {
                 await element.click();
                 await sleep(rdn(2000, 5000));
             } else {
-                log(1, "processAvailableAccount()", "recaptcha resolved 😈")
+                log(1, "processAvailableAccounts()", "recaptcha resolved 😈")
             }
             await sleep(rdn(2000, 5000));
             log(1, 'rollAccount()', email+" click roll button");
