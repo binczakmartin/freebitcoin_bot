@@ -94,7 +94,7 @@ function printTitle(nb) {
     for (var i = 0; i < str.length; i++) {
         str2 += "\x1b[38;5;"+colorset[rdn(0,colorset.length-1)]+"m"+str[i]+"\x1b[0m";
     }
-    console.log(str2+" version "+nb);
+    console.log(str2+" nb_iter "+nb+"\n");
 }
 
 function shuffle(array) {
