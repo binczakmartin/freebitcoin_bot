@@ -572,7 +572,7 @@ async function rollAccount(page, email, password) {
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (!isCaptcha) {
-                log(1, "processAvailableAccounts()", "recaptcha \x1b[38;5;160mKO\x1b[0m");
+                log(1, "processAvailableAccounts()", email+" recaptcha \x1b[38;5;160mKO\x1b[0m");
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
                 log(1, 'rollAccount()', email+" click play without captcha button");
                 await page.waitForSelector('#play_without_captchas_button', {timeout: 30000});
@@ -580,7 +580,7 @@ async function rollAccount(page, email, password) {
                 await element.click();
                 await sleep(rdn(2000, 5000));
             } else {
-                log(1, "processAvailableAccounts()", "recaptcha \x1b[38;5;34mOK\x1b[0m")
+                log(1, "processAvailableAccounts()", email+" recaptcha \x1b[38;5;34mOK\x1b[0m")
             }
             await sleep(rdn(2000, 5000));
             log(1, 'rollAccount()', email+" click roll button");
@@ -696,6 +696,7 @@ function processAccount(email, password, protocol, ip, port, id) {
         try {
             var page = await browser.newPage();
             await page.setViewport({ width: 1500, height: 2000 })
+            await page.setDefaultNavigationTimeout(60000); 
             await page.goto('https://freebitco.in/?op=signup_page');
             await sleep(rdn(9000, 13000));
             // log(1, 'processAccount()', email+" "+page.url());
