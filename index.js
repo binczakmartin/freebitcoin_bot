@@ -691,8 +691,8 @@ async function run() {
     await init();
 
     // await getFreeProxies();
-    // await getProxies();
-    // await checkAllProxies();
+    await getProxies();
+    await checkAllProxies();
 
     utils.log(1, 'run()', 'start rolling accounts');
 
