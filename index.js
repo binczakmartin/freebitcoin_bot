@@ -222,6 +222,9 @@ async function assignProxies() {
 async function checkProxy(proxyUrl) {
     return new Promise(async resolve => {
         var tmp = proxyUrl.split("://");
+        if (tmp[1] == undefined) {
+            return resolve(0);
+        }
         var tmp2 = tmp[1].split(":")
         var start = new Date().getTime();
         var testRes = await testPage(proxyUrl);
