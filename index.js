@@ -221,19 +221,21 @@ async function assignProxies() {
 
 async function checkProxy(proxyUrl) {
     return new Promise(async resolve => {
+        var tmp = proxyUrl.split("://");
+        var tmp2 = tmp[1].split(":")
         var start = new Date().getTime();
         var testRes = await testPage(proxyUrl);
         var end = new Date().getTime();
         var time = end - start;
         if (testRes == 0) {
             await Proxies.update({ up: false, delay_ms: null, last_up: null }, {
-                where: {[Op.and]: [{ ip: ip }, { port: port }]}}
+                where: {[Op.and]: [{ ip: tmp2[0] }, { port: port }]}}
             );
             utils.log(1, 'checkProxy()', proxyUrl+'\x1b[38;5;160m KO\x1b[0m');
             resolve(0);
         } else {
             await Proxies.update({ up: true, last_up: new Date(), delay_ms: time }, {
-                where: {[Op.and]: [{ ip: ip }, { port: port }]}}
+                where: {[Op.and]: [{ ip: tmp2[0] }, { port: port }]}}
             );
             utils.log(1, 'checkProxy()', proxyUrl+'\x1b[38;5;34m OK\x1b[0m');
             resolve(1);
@@ -709,7 +711,7 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('35 21 * * *', async () => {
+    cron.schedule('40 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
