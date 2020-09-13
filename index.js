@@ -248,7 +248,7 @@ async function checkAllProxies() {
         while(proxies.length) {
             chunk = proxies.splice(0, nb_proxies);
             for (elem of chunk) {
-                promiseTab.push(checkProxy(elem.protocol, elem.ip, elem.port));
+                promiseTab.push(checkProxy(elem.protocol+"://"+elem.ip+":"+elem.port));
             }
             await Promise.all(promiseTab);
         }
@@ -707,7 +707,7 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('17 21 * * *', async () => {
+    cron.schedule('25 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
