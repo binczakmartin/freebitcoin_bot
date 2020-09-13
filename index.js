@@ -222,8 +222,8 @@ async function assignProxies() {
 async function checkProxy(proxyUrl) {
     return new Promise(async resolve => {
         var tmp = proxyUrl.split("://");
-        console.log(proxyUrl);
         if (tmp[1] == undefined) {
+            console.log(tmp[1]);
             return resolve(0);
         }
         var tmp2 = tmp[1].split(":")
@@ -680,9 +680,7 @@ async function processAvailableAccounts() {
                 for (elem of chunk) {
                     // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(elem.proxy);
-                    console.log("test "+elem.proxy);
                     if (testProxy == 1) {
-                        console.log("test "+elem.proxy);
                         var current_email = elem.email; // bug bizarre
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+elem.proxy);
                         promiseTab.push(processAccount(current_email, elem.password, elem.proxy, elem.id));
