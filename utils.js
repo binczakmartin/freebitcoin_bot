@@ -1,6 +1,6 @@
 const { exec } = require("child_process");
 
-var verbose_level = 1;
+var verbose_level = 3;
 
 module.exports = {
 

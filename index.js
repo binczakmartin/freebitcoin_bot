@@ -213,7 +213,7 @@ async function assignProxies() {
         utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
         for (var i = 0; i < accLength; i++) {
             var proxy = proxies[i].protocol+"//:"+proxies[i].ip+":"+proxies[i].port
-            await Accounts.update({proxy: proxy}, {where: {id: accounts.id}});
+            await Accounts.update({proxy: proxy}, {where: {id: accounts[0].id}});
         }
         return resolve(1);
     })
