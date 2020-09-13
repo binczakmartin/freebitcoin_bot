@@ -65,12 +65,14 @@ async function init() {
     await Accounts.sync({force: false});
 }
 
-async function testPage(ip, port) {
+async function testPage(proxyUrl) {
+    var tmp = proxyUrl.split("://");
+    var tmp2 = tmp.split(":")
     return new Promise(function(resolve, reject) {
         try {
             const info = {
-                host: ip,
-                port: port,
+                host: tmp2[0],
+                port: tmp2[1],
             };
             const agent = new SocksProxyAgent(info);
             var request = https.get('https://api.ipify.org', { agent }, (res) => {
@@ -220,7 +222,7 @@ async function assignProxies() {
 async function checkProxy(proxyUrl) {
     return new Promise(async resolve => {
         var start = new Date().getTime();
-        var testRes = await testPage(ip, port);
+        var testRes = await testPage(proxyUrl);
         var end = new Date().getTime();
         var time = end - start;
         if (testRes == 0) {
@@ -707,7 +709,7 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('25 21 * * *', async () => {
+    cron.schedule('30 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
