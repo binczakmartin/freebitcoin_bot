@@ -67,7 +67,7 @@ async function init() {
 
 async function testPage(proxyUrl) {
     var tmp = proxyUrl.split("://");
-    var tmp2 = tmp.split(":")
+    var tmp2 = tmp[1].split(":")
     return new Promise(function(resolve, reject) {
         try {
             const info = {
@@ -709,7 +709,7 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('30 21 * * *', async () => {
+    cron.schedule('35 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
