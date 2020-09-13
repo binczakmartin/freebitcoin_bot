@@ -675,6 +675,7 @@ async function processAvailableAccounts() {
             nb_roll = 0;
             utils.log(1, "processAvailableAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
+                console.log("test");
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
                     // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
