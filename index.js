@@ -678,9 +678,9 @@ async function processAvailableAccounts() {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
                     // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
-                    console.log("test");
                     var testProxy = await checkProxy(elem.proxy);
                     if (testProxy == 1) {
+                        console.log("test "+elem.proxy);
                         var current_email = elem.email; // bug bizarre
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+elem.proxy);
                         promiseTab.push(processAccount(current_email, elem.password, elem.proxy, elem.id));
