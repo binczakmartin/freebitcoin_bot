@@ -679,6 +679,7 @@ async function processAvailableAccounts() {
                 for (elem of chunk) {
                     // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(elem.proxy);
+                    console.log("test "+elem.proxy);
                     if (testProxy == 1) {
                         console.log("test "+elem.proxy);
                         var current_email = elem.email; // bug bizarre
