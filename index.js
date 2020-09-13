@@ -709,13 +709,13 @@ async function run() {
     // await getFreeProxies();
     await getProxies();
     await checkAllProxies();
-
+    await assignProxies();
     
-    cron.schedule('51 21 * * *', async () => {
+    cron.schedule('55 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
-        // await checkAllProxies();
+        await checkAllProxies();
         await assignProxies();
         isCron = false;
     });
