@@ -204,7 +204,7 @@ async function insertProxies(type, filename) {
 }
 
 async function assignProxies() {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
         var accLength = accounts.length;
         var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
@@ -707,7 +707,7 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('10 21 * * *', () => {
+    cron.schedule('15 21 * * *', async () => {
         isCron = true;
         console.log('Running Cron ... ');
         await checkAllProxies();
