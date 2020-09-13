@@ -213,7 +213,7 @@ async function assignProxies() {
         utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
         for (var i = 0; i < accLength; i++) {
             var proxy = proxies[i].protocol+"//:"+proxies[i].ip+":"+proxies[i].port
-            await Accounts.update({proxy: proxy}, {where: {id: accounts[0].id}});
+            await Accounts.update({proxy: proxy}, {where: {id: accounts[i].id}});
         }
         return resolve(1);
     })
@@ -710,8 +710,8 @@ async function run() {
     await init();
 
     // await getFreeProxies();
-    await getProxies();
-    await checkAllProxies();
+    // await getProxies();
+    // await checkAllProxies();
     await assignProxies();
     
     cron.schedule('07 22 * * *', async () => {
