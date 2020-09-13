@@ -47,7 +47,7 @@ var Accounts = db.define('accounts', {
     type: { type: sequelize.BOOLEAN},
     btc_addr: { type: sequelize.STRING },
     refferer: { type: sequelize.INTEGER },
-    last_ip: { type: sequelize.STRING },
+    proxy: { type: sequelize.STRING },
     message1: { type: sequelize.STRING },
     message2: { type: sequelize.STRING }
 }, {
@@ -711,11 +711,11 @@ async function run() {
     await checkAllProxies();
 
     
-    cron.schedule('45 21 * * *', async () => {
+    cron.schedule('51 21 * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
-        await checkAllProxies();
+        // await checkAllProxies();
         await assignProxies();
         isCron = false;
     });
