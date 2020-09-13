@@ -11,6 +11,7 @@ const fs = require('fs');
 const captchaSolver = require(path.resolve( __dirname, "./captchaSolver.js" ))
 const simpleParser = require('mailparser').simpleParser;
 const utils = require(path.resolve( __dirname, "./utils.js" ));
+var cron = require('node-cron');
 
 const headless = true;
 const datadir = path.resolve( __dirname, "./datadir" )
@@ -202,9 +203,22 @@ async function insertProxies(type, filename) {
     })
 }
 
-async function checkProxy(type, ip, port) {
+async function assignProxies() {
+    return new Promise((resolve) => {
+        var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
+        var accLength = accounts.length;
+        var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+        utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
+        for (var i = 0; i < accLength; i++) {
+            var proxy = prooxies[i].protocol+"//:"+proxies[i].ip+":"+proxies[i].port
+            await Accounts.update({proxy: proxy}, {where: {id: accounts.id}});
+        }
+        return resolve(1);
+    })
+}
+
+async function checkProxy(proxyUrl) {
     return new Promise(async resolve => {
-        var proxyUrl = type+"://"+ip+":"+port
         var start = new Date().getTime();
         var testRes = await testPage(ip, port);
         var end = new Date().getTime();
@@ -493,7 +507,7 @@ async function getWinnings(page, email) {
     });
 }
 
-function processAccount(email, password, protocol, ip, port, id) {
+function processAccount(email, password, proxy, id) {
     return new Promise(async resolve => {
 
         puppeteer.use(
@@ -533,7 +547,7 @@ function processAccount(email, password, protocol, ip, port, id) {
             defaultViewport: null,
             headless:headless,
             args: [
-                '--proxy-server='+protocol+'://'+ip+':'+port,
+                '--proxy-server='+proxy,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
@@ -566,7 +580,7 @@ function processAccount(email, password, protocol, ip, port, id) {
                         pages.map(async (page) => await page.close())
                         await browser.close();
                         // await utils.deleteDir(datadir+"-"+id)
-                        await processAccount(email, password, protocol, ip, port, id);
+                        await processAccount(email, password, proxy, id);
                         return resolve(0);
                     } else if (text.includes("Too many tries")) {
                         await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
@@ -600,7 +614,7 @@ function processAccount(email, password, protocol, ip, port, id) {
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
                     await browser.close();
-                    await processAccount(email, password, protocol, ip, port);
+                    await processAccount(email, password, proxy, id);
                 } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
                     // utils.log(2, 'processAccount()', email+" "+text);
                     await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
@@ -648,25 +662,20 @@ async function processAvailableAccounts() {
             var i = 0;
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
             var accLength = accounts.length;
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            // var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
             // proxies = utils.shuffle(proxies);
             winnings = 0;
             nb_roll = 0;
-            utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
             utils.log(1, "processAvailableAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    if (proxies[i] === undefined) {
-                        break;
-                    }
-                    var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
-                    var testProxy = await checkProxy(proxies[i].protocol, proxies[i].ip, proxies[i].port);
+                    // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
+                    var testProxy = await checkProxy(elem.proxy);
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
-                        utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+proxyUrl);
-                        promiseTab.push(processAccount(current_email, elem.password, proxies[i].protocol, proxies[i].ip, proxies[i].port, elem.id));
-                        await Accounts.update({ last_ip: proxies[i].ip }, {where: {email: current_email}});
+                        utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+elem.proxy);
+                        promiseTab.push(processAccount(current_email, elem.password, elem.proxy, elem.id));
                     }
                     i++;
                 }
@@ -686,6 +695,9 @@ async function processAvailableAccounts() {
 }
 
 async function run() {
+    
+    var isCron = false;
+
     utils.log(1, 'run()', 'starting ...');
 
     await init();
@@ -694,11 +706,21 @@ async function run() {
     await getProxies();
     await checkAllProxies();
 
-    utils.log(1, 'run()', 'start rolling accounts');
-
+    
+    cron.schedule('10 21 * * *', () => {
+        isCron = true;
+        console.log('Running Cron ... ');
+        await checkAllProxies();
+        await assignProxies();
+        isCron = false;
+    });
+    
     while (1) {
-        nb_iter++;
-        await processAvailableAccounts();
+        if (!isCron) {
+            utils.log(1, 'run()', 'start rolling accounts');
+            nb_iter++;
+            await processAvailableAccounts();
+        }
     }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)

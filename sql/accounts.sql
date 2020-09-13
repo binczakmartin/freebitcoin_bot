@@ -34,3 +34,6 @@ INSERT INTO `accounts` (`email`, `password`, `balance`, `last_roll`, `type`, `cr
 /* 07/09/2020 */
 INSERT INTO `accounts` (`email`, `password`, `balance`, `last_roll`, `type`, `created_at`, `updated_at`, `deleted_at`, `btc_addr`, `refferer`,`last_ip`, `message1`) VALUES ('17j4ck.28@laposte.net', 'Test1234', NULL, DATE_SUB(NOW(), INTERVAL 4 HOUR), 0, NOW(), NOW(), NULL, '', 38665041, '', '');
 INSERT INTO `accounts` (`email`, `password`, `balance`, `last_roll`, `type`, `created_at`, `updated_at`, `deleted_at`, `btc_addr`, `refferer`,`last_ip`, `message1`) VALUES ('17j4ck.29@laposte.net', 'Test1234', NULL, DATE_SUB(NOW(), INTERVAL 4 HOUR), 0, NOW(), NOW(), NULL, '', 38665041, '', '');
+
+/*10/09/2020*/
+INSERT INTO `accounts` (`email`, `password`, `balance`, `last_roll`, `type`, `created_at`, `updated_at`, `deleted_at`, `btc_addr`, `refferer`,`last_ip`, `message1`) VALUES ('17j4ck.30@laposte.net', 'Test1234', NULL, DATE_SUB(NOW(), INTERVAL 4 HOUR), 0, NOW(), NOW(), NULL, '', 38665041, '', '');
