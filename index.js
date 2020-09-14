@@ -712,7 +712,7 @@ async function run() {
 
     // await getFreeProxies();
     // await getProxies();
-    // await checkAllProxies();
+    await checkAllProxies();
     await assignProxies();
     
     cron.schedule('07 22 * * *', async () => {
