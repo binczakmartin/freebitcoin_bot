@@ -31,7 +31,7 @@ module.exports = {
         +"888    888    88888888 88888888 888  888 888   888\n"
         +"888    888    Y8b.     Y8b.     888 d88P Y88b. Y88b.\n"
         +"888    888     \"Y8888   \"Y8888  88888P\"   \"Y888 \"Y8888P ";
-        
+
         var colorset = colorTab[this.rdn(0,colorTab.length-1)]
         for (var i = 0; i < str.length; i++) {
             str2 += "\x1b[38;5;"+colorset[this.rdn(0,colorset.length-1)]+"m"+str[i]+"\x1b[0m";
@@ -39,7 +39,7 @@ module.exports = {
         for (var i = 0; i < sig.length; i++) {
             sig2 += "\x1b[38;5;"+colorset[this.rdn(0,colorset.length-1)]+"m"+sig[i]+"\x1b[0m";
         }
-        console.log(str2+" nb_iter "+nb+"\n");
+        console.log(' _ '+sig2+' '+nb+"\n");
     },
 
     shuffle (array) {
