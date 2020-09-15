@@ -206,16 +206,20 @@ async function insertProxies(type, filename) {
 }
 
 async function assignProxies() {
-    return new Promise(async (resolve) => {
-        var accounts = await Accounts.findAll({where: {}, order: [['type', 'ASC']]});
-        var accLength = accounts.length;
-        var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
-        utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
-        for (var i = 0; i < accLength; i++) {
-            var proxy = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port
-            await Accounts.update({proxy: proxy}, {where: {id: accounts[i].id}});
+    return new Promise(async (resolve, reject) => {
+        try {
+            var accounts = await Accounts.findAll({where: {}, order: [['type', 'ASC']]});
+            var accLength = accounts.length;
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            utils.log(1, "processAvailableAccounts()", proxies.length+" available proxies");
+            for (var i = 0; i < accLength; i++) {
+                var proxy = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port
+                await Accounts.update({proxy: proxy}, {where: {id: accounts[i].id}});
+            }
+            return resolve(1);
+        } catch (e) {
+            return reject(e);
         }
-        return resolve(1);
     })
 }
 
@@ -548,7 +552,7 @@ function processAccount(email, password, proxy, id) {
             require('puppeteer-extra-plugin-stealth/evasions/user-agent-override')(),
         );
 
-        // utils.log(1, "processAccount()", "datadir => "+datadir+"-"+id)
+        utils.log(1, "processAccount()", "datadir => "+datadir+"-"+id)
         await utils.createDir(datadir+"-"+id);
         await utils.sleep(utils.rdn(2000, 5000))
         const browser = await puppeteer.launch({
@@ -569,7 +573,7 @@ function processAccount(email, password, proxy, id) {
             await page.setDefaultNavigationTimeout(60000); 
             await page.goto('https://freebitco.in/?op=signup_page');
             await utils.sleep(utils.rdn(9000, 13000));
-            // utils.log(1, 'processAccount()', email+" "+page.url());
+            utils.log(1, 'processAccount()', email+" "+page.url());
             if (page.url() != "https://freebitco.in/?op=home") {
                 page = await closePushModal(page, email);
                 page = await closeSetCookie(page, email);
@@ -678,7 +682,6 @@ async function processAvailableAccounts() {
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    // var proxyUrl = proxies[i].protocol+"://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(elem.proxy);
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
@@ -703,24 +706,20 @@ async function processAvailableAccounts() {
 }
 
 async function run() {
-    
     var isCron = false;
-
     utils.log(1, 'run()', 'starting ...');
-
     await init();
-
     // await getFreeProxies();
     // await getProxies();
     await checkAllProxies();
-    await assignProxies();
+    await assignProxies().catch((e) => { console.log(e) });
     
-    cron.schedule('07 22 * * *', async () => {
+    cron.schedule('0-5 * * * *', async () => {
         await init();
         isCron = true;
         console.log('Running Cron ... ');
         await checkAllProxies();
-        await assignProxies();
+        await assignProxies().catch((e) => { console.log(e) })
         isCron = false;
     });
     

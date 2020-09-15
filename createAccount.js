@@ -27,7 +27,7 @@ var Accounts = db.define('accounts', {
     type: { type: sequelize.BOOLEAN},
     btc_addr: { type: sequelize.STRING },
     refferer: { type: sequelize.INTEGER },
-    last_ip: { type: sequelize.STRING },
+    proxy: { type: sequelize.STRING },
     message1: { type: sequelize.STRING },
     message2: { type: sequelize.STRING }
 }, {
@@ -49,8 +49,8 @@ const resolution = [
     "800,600"
 ]
 
-function createEmail(user, pwd) {
-    return new Promise(async resolve => {
+async function createEmail(user, pwd) {
+    return new Promise(async (resolve) => {
 
         puppeteer.use(
             require('puppeteer-extra-plugin-stealth/evasions/chrome.app')(),
@@ -162,6 +162,7 @@ function createEmail(user, pwd) {
             isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
             if (isCaptcha) {
                 console.log("captcha OK")
+                await page.screenshot({path: path.resolve( __dirname, "./test1.png" )});
                 var submit1 = await page.$("#create-account-btn");
                 await submit1.click({ delay: utils.rdn(1000, 3000) })
                 await utils.sleep(utils.rdn(9000, 12000));
@@ -174,22 +175,24 @@ function createEmail(user, pwd) {
                     console.log('verif OK 2');
                 } else {
                     console.log('verif KO');
+                    await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
                     return resolve(0);
                 }
             } else {
-                console.log("captcha KO")
+                console.log("captcha KO");
+                await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
                 return resolve(0);
             }
 
             await sleep(1000);
-            await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
+            await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
             await page.close();
             await browser.close();
             await sleep(5000);
             await utils.deleteDir(datadir)
             return resolve(1);
         } catch (e) {
-            await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
+            await page.screenshot({path: path.resolve( __dirname, "./test2.png" )});
             await sleep(1000);
             await page.close();
             await browser.close();
@@ -201,4 +204,8 @@ function createEmail(user, pwd) {
     })
 }
 
-createEmail("test", "");
+async function run() {
+    await createEmail("test", "");
+}
+
+run();
