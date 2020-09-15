@@ -689,7 +689,8 @@ async function processAvailableAccounts() {
                         var current_email = elem.email; // bug bizarre
                         var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+myRandProxy);
-                        promiseTab.push(processAccount(current_email, elem.password, elem.proxy, elem.id));
+                        console.log("select a random proxy: "+myRandProxy)
+                        promiseTab.push(processAccount(current_email, elem.password, myRandProxy, elem.id));
                     }
                     i++;
                 }
