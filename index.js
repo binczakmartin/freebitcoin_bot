@@ -553,6 +553,7 @@ function processAccount(email, password, proxy, id) {
         );
 
         utils.log(1, "processAccount()", "datadir => "+datadir+"-"+id)
+        await Accounts.update({proxy: proxy}, {where: {email: email}});
         await utils.createDir(datadir+"-"+id);
         await utils.sleep(utils.rdn(2000, 5000))
         const browser = await puppeteer.launch({
@@ -640,6 +641,7 @@ function processAccount(email, password, proxy, id) {
                 return resolve(0);
             } catch (e) {
                 // utils.log(1, 'processAccount()', email+" no error detected on roll "+e);
+                await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
             await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
@@ -674,8 +676,8 @@ async function processAvailableAccounts() {
             var i = 0;
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
             var accLength = accounts.length;
-            // var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
-            // proxies = utils.shuffle(proxies);
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            proxies = utils.shuffle(proxies);
             winnings = 0;
             nb_roll = 0;
             utils.log(1, "processAvailableAccounts()", "try to roll "+accounts.length+" accounts");
@@ -685,7 +687,8 @@ async function processAvailableAccounts() {
                     var testProxy = await checkProxy(elem.proxy);
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
-                        utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+elem.proxy);
+                        var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
+                        utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+myRandProxy);
                         promiseTab.push(processAccount(current_email, elem.password, elem.proxy, elem.id));
                     }
                     i++;
@@ -706,7 +709,6 @@ async function processAvailableAccounts() {
 }
 
 async function run() {
-    var isCron = false;
     utils.log(1, 'run()', 'starting ...');
     await init();
     // await getFreeProxies();
@@ -714,21 +716,19 @@ async function run() {
     await checkAllProxies();
     await assignProxies().catch((e) => { console.log(e) });
     
-    cron.schedule('0-5 * * * *', async () => {
-        await init();
-        isCron = true;
-        console.log('Running Cron ... ');
-        await checkAllProxies();
-        await assignProxies().catch((e) => { console.log(e) })
-        isCron = false;
-    });
+    // cron.schedule('0-5 * * * *', async () => {
+    //     await init();
+    //     isCron = true;
+    //     console.log('Running Cron ... ');
+    //     await checkAllProxies();
+    //     await assignProxies().catch((e) => { console.log(e) })
+    //     isCron = false;
+    // });
     
     while (1) {
-        if (!isCron) {
-            utils.log(1, 'run()', 'start rolling accounts');
-            nb_iter++;
-            await processAvailableAccounts();
-        }
+        utils.log(1, 'run()', 'start rolling accounts');
+        nb_iter++;
+        await processAvailableAccounts();
     }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
