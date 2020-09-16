@@ -715,8 +715,9 @@ async function run() {
     utils.log(1, 'run()', 'starting ...');
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
-    // await getProxies();
-    // await checkAllProxies().catch((e) => { console.log(e) });
+    
+    await getProxies();
+    await checkAllProxies().catch((e) => { console.log(e) });
     // await assignProxies().catch((e) => { console.log(e) });
     
     // cron.schedule('0-5 * * * *', async () => {
@@ -726,13 +727,13 @@ async function run() {
     //     await assignProxies().catch((e) => { console.log(e) })
     // });
     
-    // while (1) {
-    //     utils.log(1, 'run()', 'start rolling accounts');
-    //     nb_iter++;
-    //     await processAvailableAccounts().catch((e) => {
-    //         console.log(e);
-    //     });
-    // }
+    while (1) {
+        utils.log(1, 'run()', 'start rolling accounts');
+        nb_iter++;
+        await processAvailableAccounts().catch((e) => {
+            console.log(e);
+        });
+    }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
     // await captchaSolver.test();
