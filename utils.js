@@ -39,7 +39,7 @@ module.exports = {
         // for (var i = 0; i < sig.length; i++) {
         //     sig2 += "\x1b[38;5;"+colorset[this.rdn(0,colorset.length-1)]+"m"+sig[i]+"\x1b[0m";
         // }
-        console.log(str2+' 17J4CK_SOFTWARE '+nb+"\n");
+        console.log(str2+' \n\n17J4CK - '+nb+" - "+new Date().toLocaleDateString()+"\n");
     },
 
     shuffle (array) {
