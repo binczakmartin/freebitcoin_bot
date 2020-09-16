@@ -553,7 +553,7 @@ function processAccount(email, password, proxy, id) {
         );
 
         utils.log(1, "processAccount()", "datadir => "+datadir+"-"+id)
-        await Accounts.update({proxy: proxy}, {where: {email: email}});
+        await Accounts.update({proxy: proxy}, {where: {email: email}}).catch((e) => { throw e });
         await utils.createDir(datadir+"-"+id);
         await utils.sleep(utils.rdn(2000, 5000))
         const browser = await puppeteer.launch({
@@ -576,8 +576,8 @@ function processAccount(email, password, proxy, id) {
             await utils.sleep(utils.rdn(9000, 13000));
             utils.log(1, 'processAccount()', email+" "+page.url());
             if (page.url() != "https://freebitco.in/?op=home") {
-                page = await closePushModal(page, email);
-                page = await closeSetCookie(page, email);
+                page = await closePushModal(page, email).catch(e => {throw e});
+                page = await closeSetCookie(page, email).catch(e => {throw e});
                 await utils.sleep(utils.rdn(2000, 5000));
                 page = await logIn(page, email, password).catch(e => {throw e});
                 await utils.sleep(utils.rdn(2000, 5000));
@@ -593,12 +593,12 @@ function processAccount(email, password, proxy, id) {
                         pages.map(async (page) => await page.close())
                         await browser.close();
                         // await utils.deleteDir(datadir+"-"+id)
-                        await processAccount(email, password, proxy, id);
+                        await processAccount(email, password, proxy, id).catch(e => {throw e});;
                         return resolve(0);
                     } else if (text.includes("Too many tries")) {
-                        await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+                        await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}}).catch(e => {throw e});;
                     } else {
-                        await Accounts.update({ message1: text }, {where: {email: email}});
+                        await Accounts.update({ message1: text }, {where: {email: email}}).catch(e => {throw e});;
                     }
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
@@ -609,7 +609,7 @@ function processAccount(email, password, proxy, id) {
             await utils.sleep(utils.rdn(5000, 15000));
             page = await closeSetCookie(page, email);
             var balance = await getBalance(page, email).catch(e => {throw e});
-            await Accounts.update({ balance: balance}, {where: {email: email}});
+            await Accounts.update({ balance: balance}, {where: {email: email}}).catch(e => {throw e});;
             await utils.sleep(utils.rdn(6000, 12000));
             page = await rollAccount(page, email, password).catch(e => {throw e});
             await utils.sleep(utils.rdn(6000, 12000));
@@ -623,17 +623,17 @@ function processAccount(email, password, proxy, id) {
                     // utils.log(2, 'processAccount()', email+" "+text);
                     await utils.sleep(utils.rdn(10000, 30000));
                     var link = await getVerificationLink(email, password, 1);
-                    await ipVerification(link, browser, email);
+                    await ipVerification(link, browser, email).catch(e => {throw e});;
                     pages = await browser.pages();
                     pages.map(async (page) => await page.close())
                     await browser.close();
-                    await processAccount(email, password, proxy, id);
+                    await processAccount(email, password, proxy, id).catch(e => {throw e});;
                 } else if (text.includes("You do not have enough reward points") || text.includes("Someone has already played")) {
                     // utils.log(2, 'processAccount()', email+" "+text);
-                    await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}});
+                    await Accounts.update({ message2: text, last_roll: new Date()}, {where: {email: email}}).catch(e => {throw e});;
                 } else if (text) {
                     // utils.log(2, 'processAccount()', email+" "+text);
-                    await Accounts.update({ message1: text }, {where: {email: email}});
+                    await Accounts.update({ message1: text }, {where: {email: email}}).catch(e => {throw e});;
                 }
                 pages = await browser.pages();
                 pages.map(async (page) => await page.close())
@@ -641,23 +641,23 @@ function processAccount(email, password, proxy, id) {
                 return resolve(0);
             } catch (e) {
                 // utils.log(1, 'processAccount()', email+" no error detected on roll "+e);
-                await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
+                await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}}).catch(e => {throw e});;
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
-            await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}});
+            await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}}).catch(e => {throw e});;
             utils.log(3, 'processAccount()', email+' success');
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
         } catch (e) {
-            await Accounts.update({ message2: e.message }, {where: {email: email}});
+            await Accounts.update({ message2: e.message }, {where: {email: email}}).catch(e => {throw e});;
             // utils.log(3, 'processAccount()', email+' '+e);
             utils.log(3, 'processAccount()', email+' error');
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
-            await Accounts.update({last_roll: new Date()}, {where: {email: email}});
+            await Accounts.update({last_roll: new Date()}, {where: {email: email}}).catch(e => {throw e});;
             await utils.sleep(utils.rdn(6000, 12000));
             await utils.deleteDir(datadir+"-"+id)
             return resolve(0);
