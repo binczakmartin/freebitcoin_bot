@@ -674,9 +674,11 @@ async function processAvailableAccounts() {
             var d = new Date();
             d.setHours(d.getHours() - 1);
             var i = 0;
-            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]});
+            var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]})
+                                         .catch((e) => { throw e });
             var accLength = accounts.length;
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]});
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
+                                       .catch((e) => { throw e });
             proxies = utils.shuffle(proxies);
             winnings = 0;
             nb_roll = 0;
@@ -684,7 +686,7 @@ async function processAvailableAccounts() {
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    var testProxy = await checkProxy(elem.proxy);
+                    var testProxy = await checkProxy(elem.proxy).catch((e) => { throw e });
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
                         var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
@@ -694,7 +696,7 @@ async function processAvailableAccounts() {
                     }
                     i++;
                 }
-                await Promise.all(promiseTab);
+                await Promise.all(promiseTab).catch((e) => { throw e });
             }
             var end = new Date().getTime();
             var time = end - start;
@@ -711,25 +713,25 @@ async function processAvailableAccounts() {
 
 async function run() {
     utils.log(1, 'run()', 'starting ...');
-    await init();
+    await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
     // await getProxies();
-    await checkAllProxies();
+    await checkAllProxies().catch((e) => { console.log(e) });
     await assignProxies().catch((e) => { console.log(e) });
     
     // cron.schedule('0-5 * * * *', async () => {
     //     await init();
-    //     isCron = true;
     //     console.log('Running Cron ... ');
     //     await checkAllProxies();
     //     await assignProxies().catch((e) => { console.log(e) })
-    //     isCron = false;
     // });
     
     while (1) {
         utils.log(1, 'run()', 'start rolling accounts');
         nb_iter++;
-        await processAvailableAccounts();
+        await processAvailableAccounts().catch((e) => {
+            console.log(e);
+        });
     }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
