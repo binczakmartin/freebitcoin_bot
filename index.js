@@ -716,7 +716,7 @@ async function run() {
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
     
-    await getProxies();
+    // await getProxies();
     await checkAllProxies().catch((e) => { console.log(e) });
     // await assignProxies().catch((e) => { console.log(e) });
     
