@@ -452,7 +452,7 @@ async function rollAccount(page, email, password) {
             page = await closePushModal(page, email);
             await utils.sleep(utils.rdn(2000, 5000));
             await page.screenshot({path: path.resolve( __dirname, "./test.png" )});
-            isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
+            isCaptcha = await captchaSolver.solve(page.mainFrame()).catch((e) => {throw e});
             if (!isCaptcha) {
                 utils.log(1, "processAvailableAccounts()", email+" recaptcha \x1b[38;5;160mKO\x1b[0m");
                 await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
@@ -691,7 +691,6 @@ async function processAvailableAccounts() {
                         var current_email = elem.email; // bug bizarre
                         var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+myRandProxy);
-                        console.log("select a random proxy: "+myRandProxy)
                         promiseTab.push(processAccount(current_email, elem.password, myRandProxy, elem.id));
                     }
                     i++;

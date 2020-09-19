@@ -159,7 +159,7 @@ async function createEmail(user, pwd) {
             await inputCheckbox.click({ delay: utils.rdn(1000, 3000) })
             console.log("checkbox clicked");
 
-            isCaptcha = await captchaSolver.solve(page).catch((e) => {throw e});
+            isCaptcha = await captchaSolver.solve(page.mainFrame()).catch((e) => {throw e});
             if (isCaptcha) {
                 console.log("captcha OK")
                 await page.screenshot({path: path.resolve( __dirname, "./test1.png" )});

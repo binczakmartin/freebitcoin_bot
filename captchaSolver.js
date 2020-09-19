@@ -6,7 +6,7 @@ const datadir = path.resolve( __dirname, "./datadir" )
 const utils = require(path.resolve( __dirname, "./utils.js" ));
 
 module.exports = {
-  async solve (page) {
+  async solve (parentframe) {
     return new Promise(async (resolve, reject) => {
       try {
 
@@ -14,15 +14,18 @@ module.exports = {
         let recaptcha1;
         let recaptcha2;
         let i = 1;
-        
+        let handle;
+
         await utils.sleep(utils.rdn(2000, 7000));
 
-        for (const frame of page.mainFrame().childFrames()){
-          if (frame.url().includes('https://www.google.com/recaptcha/api2/anchor')){
+        for (const frame of parentframe.childFrames()){
+          if (frame.url().includes('https://www.google.com/recaptcha/api2/anchor')) {
             try {
               recaptcha1 = frame;
               var checkbox = await recaptcha1.$('#recaptcha-anchor')
-              await checkbox.click({ delay: utils.rdn(1000, 5000) })
+              await checkbox.click();
+              console.log("checkbox clicked !")
+              await utils.sleep(utils.rdn(20000, 30000))
               var status = await frame.$('#recaptcha-accessible-status')
               statusText = await frame.evaluate(status => status.textContent, status);
               console.log("\ntest frame => "+frame.url());
@@ -31,19 +34,20 @@ module.exports = {
               // console.log("test 12345 => "+error);
             }
           }
+          console.log(frame.url());
         }
   
-        await utils.sleep(utils.rdn(3000, 6000))
+        await utils.sleep(utils.rdn(2000, 10000))
 
-        for (const frame of page.mainFrame().childFrames()) {
-          if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')){
+        for (const frame of parentframe.childFrames()) {
+          if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')) {
             recaptcha2 = frame 
             console.log("\ntest frame => "+frame.url());
           }
         }
 
         try {
-          await utils.sleep(utils.rdn(1000, 3000))
+          await utils.sleep(utils.rdn(2000, 5000))
     
           // console.log("check if captcha is validated");
           var status = await recaptcha1.$('#recaptcha-accessible-status')
@@ -59,7 +63,7 @@ module.exports = {
         
         try {
           var audioButton = await recaptcha2.$('#recaptcha-audio-button')
-          await audioButton.click({ delay: utils.rdn(1000, 3000) })
+          await audioButton.click({ delay: utils.rdn(1500, 5000) })
         } catch (e) {
           console.log("cant't click play audio challenge")
         }
@@ -69,7 +73,7 @@ module.exports = {
           console.log("loop "+i)
           // await recaptcha2.waitForSelector('#recaptcha-audio-button', {timeout: 30000});
           
-          await utils.sleep(utils.rdn(1000, 3000))
+          await utils.sleep(utils.rdn(1500, 5000))
           var element = await recaptcha2.$('body > div > div > div:nth-child(1) > div.rc-doscaptcha-body > div')
           if (element !== null) {
             text = await recaptcha2.evaluate(element => element.textContent, element);
@@ -145,7 +149,7 @@ module.exports = {
           return resolve(0);
         }
       } catch (e) {
-        console.log(e)
+        console.log("error 213 "+e)
         //reject(e);
         return resolve(0);
       }
@@ -203,7 +207,7 @@ module.exports = {
           await page.setDefaultNavigationTimeout(60000);
           await page.goto("https://www.google.com/recaptcha/api2/demo");
           // console.log(await browser.userAgent());
-          await this.solve(page);
+          await this.solve(page.mainFrame());
           await utils.sleep(10000)
           await page.close()
           await browser.close();
