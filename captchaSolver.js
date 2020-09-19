@@ -25,7 +25,7 @@ module.exports = {
               var checkbox = await recaptcha1.$('#recaptcha-anchor')
               await checkbox.click();
               console.log("checkbox clicked !")
-              await utils.sleep(utils.rdn(20000, 30000))
+              await utils.sleep(utils.rdn(2000, 5000))
               var status = await frame.$('#recaptcha-accessible-status')
               statusText = await frame.evaluate(status => status.textContent, status);
               console.log("\ntest frame => "+frame.url());
@@ -37,8 +37,6 @@ module.exports = {
           console.log(frame.url());
         }
   
-        await utils.sleep(utils.rdn(2000, 10000))
-
         for (const frame of parentframe.childFrames()) {
           if (frame.url().includes('https://www.google.com/recaptcha/api2/bframe')) {
             recaptcha2 = frame 
@@ -46,9 +44,7 @@ module.exports = {
           }
         }
 
-        try {
-          await utils.sleep(utils.rdn(2000, 5000))
-    
+        try {    
           // console.log("check if captcha is validated");
           var status = await recaptcha1.$('#recaptcha-accessible-status')
           statusText = await recaptcha1.evaluate(status => status.textContent, status);
@@ -57,9 +53,8 @@ module.exports = {
             return resolve(1);
           } 
         } catch (e) {
-          console.log("can't click on the recaptcha1 button")
+          console.log("can't get captcha status")
         }
-
         
         try {
           var audioButton = await recaptcha2.$('#recaptcha-audio-button')

@@ -566,10 +566,12 @@ function processAccount(email, password, proxy, id) {
                 '--disable-web-security',
                 '--user-data-dir='+datadir+"-"+id,
                 '--window-size=1500,2000',
+                '--disable-features=site-per-process',
             ],
         });
         try {
             var page = await browser.newPage();
+            await page.setBypassCSP(true)
             await page.setViewport({ width: 1500, height: 2000 })
             await page.setDefaultNavigationTimeout(60000); 
             await page.goto('https://freebitco.in/?op=signup_page');
