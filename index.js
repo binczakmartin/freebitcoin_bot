@@ -93,6 +93,52 @@ async function testPage(proxyUrl) {
     });
 }
 
+async function getRsocksProxies() {
+    return new Promise(function(resolve, reject) {
+        try {
+            var data = "";
+            const options = {
+                hostname: 'rsocks.net',
+                port: 443,
+                path: '/api/v1/file/get-proxy',
+                method: 'POST',
+                headers: {
+                  'X-Auth-ID': '75749',
+                  'X-Auth-Key': '8cc5e137a98373c76e23016886bf3181d714c2ce00cd593d45e7a57bdedd1a24'
+                }
+              }
+
+            var request = https.get(options, (res) => {
+                res.on("data", function(chunk) {
+                    // console.log("BODY: " + chunk);
+                    data += chunk;
+                    
+                });
+                res.on('end', function() {
+                    var obj = JSON.parse(data);
+                    var index = Object.keys(obj.packages)[0]
+                    var ips = obj.packages[index].ips
+                    console.log("SELECT IP FROM RSOCK PACKAGE : '"+obj.packages[index].name+"'");
+                    // console.log(JSON.stringify(ips, null, 1))
+                    resolve(ips);
+                });
+            });
+            request.on('error', function(err) {
+                console.log(err);
+                resolve(0);
+            });
+            request.setTimeout( 30000, function( ) {
+                console.log("timeout");
+                resolve(0);
+            });
+        } catch (e) {
+            console.log(e)
+            resolve(0);
+        }
+    });
+}
+
+
 async function getProxies() {
     utils.log(1, 'getProxies()', 'truncate proxies table');
     await Proxies.destroy({where: 1, truncate: true});
@@ -689,11 +735,15 @@ async function processAvailableAccounts() {
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]})
                                          .catch((e) => { throw e });
             var accLength = accounts.length;
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
-                                       .catch((e) => { throw e });
+            // var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
+            //                            .catch((e) => { throw e });
+            // proxies = utils.shuffle(proxies);
+
+            var proxies = await getRsocksProxies().catch((e) => { throw e });
             proxies = utils.shuffle(proxies);
             winnings = 0;
             nb_roll = 0;
+            utils.log(1, "processAvailableAccounts()", proxies.length+" proxies");
             utils.log(1, "processAvailableAccounts()", "try to roll "+accounts.length+" accounts");
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
@@ -701,7 +751,8 @@ async function processAvailableAccounts() {
                     var testProxy = await checkProxy(elem.proxy).catch((e) => { throw e });
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
-                        var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
+                        // var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
+                        var myRandProxy = "socks5://"+proxies[i];
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+myRandProxy);
                         promiseTab.push(processAccount(current_email, elem.password, myRandProxy, elem.id));
                     }
@@ -728,7 +779,8 @@ async function run() {
     // await getFreeProxies();
     
     // await getProxies();
-    await checkAllProxies().catch((e) => { console.log(e) });
+    // await checkAllProxies().catch((e) => { console.log(e) });
+    // await getRsocksProxies();
     // await assignProxies().catch((e) => { console.log(e) });
     
     // cron.schedule('0-5 * * * *', async () => {
@@ -738,13 +790,13 @@ async function run() {
     //     await assignProxies().catch((e) => { console.log(e) })
     // });
     
-    // while (1) {
-    //     utils.log(1, 'run()', 'start rolling accounts');
-    //     nb_iter++;
-    //     await processAvailableAccounts().catch((e) => {
-    //         console.log(e);
-    //     });
-    // }
+    while (1) {
+        utils.log(1, 'run()', 'start rolling accounts');
+        nb_iter++;
+        await processAvailableAccounts().catch((e) => {
+            console.log(e);
+        });
+    }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
     // await captchaSolver.test();

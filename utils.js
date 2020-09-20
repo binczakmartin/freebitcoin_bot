@@ -20,7 +20,6 @@ module.exports = {
             [255, 254, 253, 252, 88, 89, 80, 91, 92, 93, 94, 95, 96, 97]
         ]
         
-        var sig2 = "";
         var str2 = "";
         var str = " .d888                          888      888\n"
         +"d88P\"                           888      888\n"
@@ -31,10 +30,10 @@ module.exports = {
         +"888    888    Y8b.     Y8b.     888 d88P Y88b. Y88b.\n"
         +"888    888     \"Y8888   \"Y8888  88888P\"   \"Y888 \"Y8888P ";
         var rdi1 = colorTab.length-1;
-        var colorset = colorTab[this.rdn(0, rdi1)];
+        var colorset = colorTab[this.rdn(1, rdi1)];
         var rdi2 = colorset.length-1
         for (var i = 0; i < str.length; i++) {
-            str2 += "\x1b[38;5;"+colorset[this.rdn(0, rdi2)]+"m"+str[i]+"\x1b[0m";
+            str2 += "\x1b[38;5;"+colorset[this.rdn(1, rdi2)]+"m"+str[i]+"\x1b[0m";
         }
         console.log(str2+' \n\n17J4CK:'+nb+":"+new Date().toISOString()+"\n");
     },
