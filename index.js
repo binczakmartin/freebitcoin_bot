@@ -735,11 +735,10 @@ async function processAvailableAccounts() {
 
             var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
                                        .catch((e) => { throw e });
-            // proxies = utils.shuffle(proxies);
+            proxies = utils.shuffle(proxies);
 
             // var proxies = await getRsocksProxies().catch((e) => { throw e });
             // proxies = utils.shuffle(proxies);
-            console.log(proxies[0]+" "+proxies[1]+" "+proxies[2]+" "+proxies[3]+" ");
             winnings = 0;
             nb_roll = 0;
             utils.log(1, "processAvailableAccounts()", proxies.length+" proxies");
@@ -776,8 +775,8 @@ async function run() {
     var isCron = 0;
     utils.log(1, 'run()', 'starting ...');
     await init().catch((e) => { console.log(e) });
+
     // await getFreeProxies();
-    
     // await getProxies();
     // await checkAllProxies().catch((e) => { console.log(e) });
     
@@ -799,10 +798,6 @@ async function run() {
             });
         }
     }
-
-    // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
-    // await captchaSolver.test();
-    // await processAccount("17j4ck.3@gmail.com", 'test1234&', '', '', '', 1);
 }
 
 run();
