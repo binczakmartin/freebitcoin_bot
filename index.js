@@ -77,6 +77,9 @@ async function testPage(proxyUrl) {
             const agent = new SocksProxyAgent(info);
             var request = https.get('https://api.ipify.org', { agent }, (res) => {
                 resolve(1);
+                res.on('data', function (body) {
+                    console.log(body);
+                });
             });
             request.on('error', function(err) {
                 resolve(0);
@@ -191,9 +194,9 @@ async function insertProxies(type, filename) {
                         var tab2 = elem.split(':');
                         if (elem) {
                             var proxies = await Proxies.findAll({where: {ip: tab2[0]}});
-                            if (proxies.length == 0) {
+                            // if (proxies.length == 0) {
                                 await Proxies.create({ip: tab2[0], port: tab2[1], protocol: type});
-                            }
+                            // }
                         }
                     }
                     resolve(0);
