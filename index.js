@@ -309,8 +309,6 @@ async function checkAllProxies() {
     return new Promise(async resolve => {
         var proxies = await Proxies.findAll({});
         var promiseTab = [];
-        var delay = 0;
-        var i = 0;
         while(proxies.length) {
             chunk = proxies.splice(0, nb_proxies);
             for (elem of chunk) {
