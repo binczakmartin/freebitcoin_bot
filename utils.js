@@ -39,15 +39,13 @@ module.exports = {
     },
 
     shuffle (array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
-    while (0 !== currentIndex) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-    return array;
+        for(let i = array.length - 1; i > 0; i--){
+            const j = Math.floor(Math.random() * i)
+            const temp = array[i]
+            array[i] = array[j]
+            array[j] = temp
+          }
+        return array;
     },
 
     log (type, function_name, message) {
