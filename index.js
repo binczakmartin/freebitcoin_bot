@@ -733,9 +733,9 @@ async function processAvailableAccounts() {
                                          .catch((e) => { throw e });
             var accLength = accounts.length;
 
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 5000}}]}, order: [['delay_ms', 'ASC']]})
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 1000}}]}, order: [['delay_ms', 'ASC']]})
                                        .catch((e) => { throw e });
-            proxies = utils.shuffle(proxies);
+            // proxies = utils.shuffle(proxies);
 
             // var proxies = await getRsocksProxies().catch((e) => { throw e });
             // proxies = utils.shuffle(proxies);
