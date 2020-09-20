@@ -741,6 +741,7 @@ async function processAvailableAccounts() {
 
             var proxies = await getRsocksProxies().catch((e) => { throw e });
             proxies = utils.shuffle(proxies);
+            console.log(proxies[0]+" "+proxies[1]+" "+proxies[2]+" "+proxies[3]+" ");
             winnings = 0;
             nb_roll = 0;
             utils.log(1, "processAvailableAccounts()", proxies.length+" proxies");
@@ -748,11 +749,11 @@ async function processAvailableAccounts() {
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    var testProxy = await checkProxy(elem.proxy).catch((e) => { throw e });
+                    var myRandProxy = "socks5://"+proxies[i];
+                    var testProxy = await checkProxy(myRandProxy).catch((e) => { throw e });
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
                         // var myRandProxy = proxies[i].protocol+'://'+proxies[i].ip+':'+proxies[i].port;
-                        var myRandProxy = "socks5://"+proxies[i];
                         utils.log(1, "processAvailableAccounts()", "process account: "+current_email+" whith proxy: "+myRandProxy);
                         promiseTab.push(processAccount(current_email, elem.password, myRandProxy, elem.id));
                     }
