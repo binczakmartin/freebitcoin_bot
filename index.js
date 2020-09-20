@@ -70,16 +70,20 @@ async function testPage(proxyUrl) {
     var tmp2 = tmp[1].split(":")
     return new Promise(function(resolve, reject) {
         try {
+            var data = "";
             const info = {
                 host: tmp2[0],
                 port: tmp2[1],
             };
             const agent = new SocksProxyAgent(info);
             var request = https.get('https://api.ipify.org', { agent }, (res) => {
-                resolve(1);
                 res.on("data", function(chunk) {
-                    console.log("BODY: " + chunk);
+                    // console.log("BODY: " + chunk);
+                    data += chunk;
                 });
+                res.on("end", function() {
+                    resolve(data);
+                })
             });
             request.on('error', function(err) {
                 resolve(0);
@@ -299,7 +303,7 @@ async function checkProxy(proxyUrl) {
             await Proxies.update({ up: true, last_up: new Date(), delay_ms: time }, {
                 where: {[Op.and]: [{ ip: tmp2[0] }, { port: tmp2[1] }]}}
             );
-            utils.log(1, 'checkProxy()', proxyUrl+'\x1b[38;5;34m OK\x1b[0m');
+            utils.log(1, 'checkProxy()', proxyUrl+' / '+testRes+'\x1b[38;5;34m OK\x1b[0m');
             resolve(1);
         }
     });
