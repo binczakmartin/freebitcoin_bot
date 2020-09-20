@@ -19,7 +19,7 @@ const datadir = path.resolve( __dirname, "./datadir" )
 var winnings = 0;
 var nb_roll = 0;
 var nb_acc = 5;
-var nb_proxies = 200;
+var nb_proxies = 300;
 var nb_iter = 0;
 
 db.options.logging = false;
@@ -84,7 +84,7 @@ async function testPage(proxyUrl) {
             request.on('error', function(err) {
                 resolve(0);
             });
-            request.setTimeout( 30000, function( ) {
+            request.setTimeout( 15000, function( ) {
                 resolve(0);
             });
         } catch (e) {
@@ -733,7 +733,7 @@ async function processAvailableAccounts() {
                                          .catch((e) => { throw e });
             var accLength = accounts.length;
 
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 5000}}]}, order: [['delay_ms', 'ASC']]})
                                        .catch((e) => { throw e });
             proxies = utils.shuffle(proxies);
 
@@ -782,12 +782,12 @@ async function run() {
     // await getRsocksProxies();
     // await assignProxies().catch((e) => { console.log(e) });
     
-    // cron.schedule('0-5 * * * *', async () => {
-    //     await init();
-    //     console.log('Running Cron ... ');
-    //     await checkAllProxies();
-    //     await assignProxies().catch((e) => { console.log(e) })
-    // });
+    cron.schedule('0-5 * * * *', async () => {
+        await init();
+        console.log('Running Cron ... ');
+        await getProxies();
+        await checkAllProxies().catch((e) => { console.log(e) });
+    });
     
     // while (1) {
     //     utils.log(1, 'run()', 'start rolling accounts');
