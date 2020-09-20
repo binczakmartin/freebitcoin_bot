@@ -142,8 +142,8 @@ async function getRsocksProxies() {
 async function getProxies() {
     utils.log(1, 'getProxies()', 'truncate proxies table');
     await Proxies.destroy({where: 1, truncate: true});
-    var directory = path.normalize(__dirname+'/proxies');
-    await insertProxies('socks5', path.normalize( directory+'/proxyscrape_10000_socks5_proxies.txt'));
+    var proxies = await getRsocksProxies();
+    await insertProxies('socks5', proxies);
 }
 
 async function getFreeProxies() {
@@ -229,31 +229,25 @@ async function getFreeProxies() {
     })
 }
 
-async function insertProxies(type, filename) {
+async function insertProxies(type, tab1) {
     return new Promise(async (resolve) => {
         try {
-            utils.log(1, 'insertProxies()', filename)
-                fs.readFile(filename, 'utf8', async (err, data) => {
-                    if (err) throw err;
-                    var tab1 = data.split('\n');
-                    var pTab = [];
-                    var counter = 0;
-                    for (elem of tab1) {
-                        var tab2 = elem.split(':');
-                        if (elem) {
-                            // var proxies = await Proxies.findAll({where: {ip: tab2[0]}});
-                            // if (proxies.length == 0) {
-                                pTab.push(Proxies.create({ip: tab2[0], port: tab2[1], protocol: type}));
-                                if (counter == 9) {
-                                    await Promise.all(pTab);
-                                }
-                            // }
-                        }
-                        // await utils.sleep(150);
-                        counter++;
+            utils.log(1, 'insertProxies()', '');
+            for (elem of tab1) {
+                var tab2 = elem.split(':');
+                if (elem) {
+                    // var proxies = await Proxies.findAll({where: {ip: tab2[0]}});
+                    // if (proxies.length == 0) {
+                    pTab.push(Proxies.create({ip: tab2[0], port: tab2[1], protocol: type}));
+                    if (counter == 9) {
+                        await Promise.all(pTab);
                     }
-                    resolve(0);
-                });
+                    // }
+                }
+                // await utils.sleep(150);
+                counter++;
+                resolve(0);
+            }
         } catch (e) {
             utils.log(3, 'insertProxies()', e);
             resolve(0);
@@ -735,12 +729,13 @@ async function processAvailableAccounts() {
             var accounts = await Accounts.findAll({where: {[Op.and]: [{ last_roll: {[Op.lte]: d}}, {message1: ''}]}, order: [['type', 'ASC']]})
                                          .catch((e) => { throw e });
             var accLength = accounts.length;
-            // var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
-            //                            .catch((e) => { throw e });
-            // proxies = utils.shuffle(proxies);
 
-            var proxies = await getRsocksProxies().catch((e) => { throw e });
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
+                                       .catch((e) => { throw e });
             proxies = utils.shuffle(proxies);
+
+            // var proxies = await getRsocksProxies().catch((e) => { throw e });
+            // proxies = utils.shuffle(proxies);
             console.log(proxies[0]+" "+proxies[1]+" "+proxies[2]+" "+proxies[3]+" ");
             winnings = 0;
             nb_roll = 0;
@@ -779,8 +774,8 @@ async function run() {
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
     
-    // await getProxies();
-    // await checkAllProxies().catch((e) => { console.log(e) });
+    await getProxies();
+    await checkAllProxies().catch((e) => { console.log(e) });
     // await getRsocksProxies();
     // await assignProxies().catch((e) => { console.log(e) });
     
