@@ -235,6 +235,7 @@ async function insertProxies(type, tab1) {
         try {
             utils.log(1, 'insertProxies()', '');
             var pTab = [];
+            counter = 0;
             for (elem of tab1) {
                 var tab2 = elem.split(':');
                 if (elem) {
@@ -243,6 +244,7 @@ async function insertProxies(type, tab1) {
                     pTab.push(Proxies.create({ip: tab2[0], port: tab2[1], protocol: type}));
                     if (counter == 9) {
                         await Promise.all(pTab);
+                        counter = 0;
                     }
                     // }
                 }
