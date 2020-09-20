@@ -303,7 +303,7 @@ async function checkProxy(proxyUrl) {
             await Proxies.update({ up: true, last_up: new Date(), delay_ms: time }, {
                 where: {[Op.and]: [{ ip: tmp2[0] }, { port: tmp2[1] }]}}
             );
-            utils.log(1, 'checkProxy()', proxyUrl+' / '+testRes+'\x1b[38;5;34m OK\x1b[0m');
+            utils.log(1, 'checkProxy()', testRes+'\x1b[38;5;34m OK\x1b[0m');
             resolve(1);
         }
     });
