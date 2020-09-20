@@ -77,8 +77,8 @@ async function testPage(proxyUrl) {
             const agent = new SocksProxyAgent(info);
             var request = https.get('https://api.ipify.org', { agent }, (res) => {
                 resolve(1);
-                res.on('data', function (body) {
-                    console.log(body);
+                res.on("data", function(chunk) {
+                    console.log("BODY: " + chunk);
                 });
             });
             request.on('error', function(err) {
@@ -190,14 +190,21 @@ async function insertProxies(type, filename) {
                 fs.readFile(filename, 'utf8', async (err, data) => {
                     if (err) throw err;
                     var tab1 = data.split('\n');
+                    var pTab = [];
+                    var counter = 0;
                     for (elem of tab1) {
                         var tab2 = elem.split(':');
                         if (elem) {
-                            var proxies = await Proxies.findAll({where: {ip: tab2[0]}});
+                            // var proxies = await Proxies.findAll({where: {ip: tab2[0]}});
                             // if (proxies.length == 0) {
-                                await Proxies.create({ip: tab2[0], port: tab2[1], protocol: type});
+                                pTab.push(Proxies.create({ip: tab2[0], port: tab2[1], protocol: type}));
+                                if (counter == 9) {
+                                    await Promise.all(pTab);
+                                }
                             // }
                         }
+                        // await utils.sleep(150);
+                        counter++;
                     }
                     resolve(0);
                 });
@@ -720,7 +727,7 @@ async function run() {
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
     
-    await getProxies();
+    // await getProxies();
     await checkAllProxies().catch((e) => { console.log(e) });
     // await assignProxies().catch((e) => { console.log(e) });
     
