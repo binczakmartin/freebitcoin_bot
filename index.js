@@ -747,7 +747,7 @@ async function processAvailableAccounts() {
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    var myRandProxy = "socks5://"+proxies[i];
+                    var myRandProxy = "socks5://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(myRandProxy).catch((e) => { throw e });
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
@@ -778,10 +778,8 @@ async function run() {
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
     
-    await getProxies();
-    await checkAllProxies().catch((e) => { console.log(e) });
-    // await getRsocksProxies();
-    // await assignProxies().catch((e) => { console.log(e) });
+    // await getProxies();
+    // await checkAllProxies().catch((e) => { console.log(e) });
     
     cron.schedule('* */6 * * *', async () => {
         isCron = 1
