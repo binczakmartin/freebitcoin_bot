@@ -143,7 +143,7 @@ async function getProxies() {
     utils.log(1, 'getProxies()', 'truncate proxies table');
     await Proxies.destroy({where: 1, truncate: true});
     var proxies = await getRsocksProxies();
-    console.log(proxies);
+    // console.log(proxies);
     await insertProxies('socks5', proxies);
 }
 
@@ -250,8 +250,8 @@ async function insertProxies(type, tab1) {
                 }
                 // await utils.sleep(150);
                 counter++;
-                resolve(0);
             }
+            resolve(0);
         } catch (e) {
             utils.log(3, 'insertProxies()', e);
             resolve(0);
