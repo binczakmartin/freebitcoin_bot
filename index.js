@@ -747,7 +747,7 @@ async function processAvailableAccounts() {
             while(accounts.length) {
                 chunk = accounts.splice(0, nb_acc);
                 for (elem of chunk) {
-                    var myRandProxy = "socks5://"+proxies[i].ip+":"+proxies[i].port;
+                    var myRandProxy = "socks4://"+proxies[i].ip+":"+proxies[i].port;
                     var testProxy = await checkProxy(myRandProxy).catch((e) => { throw e });
                     if (testProxy == 1) {
                         var current_email = elem.email; // bug bizarre
