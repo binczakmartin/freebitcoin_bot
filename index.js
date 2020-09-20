@@ -19,7 +19,7 @@ const datadir = path.resolve( __dirname, "./datadir" )
 var winnings = 0;
 var nb_roll = 0;
 var nb_acc = 5;
-var nb_proxies = 1000;
+var nb_proxies = 200;
 var nb_iter = 0;
 
 db.options.logging = false;
@@ -234,6 +234,7 @@ async function insertProxies(type, tab1) {
     return new Promise(async (resolve) => {
         try {
             utils.log(1, 'insertProxies()', '');
+            var pTab = [];
             for (elem of tab1) {
                 var tab2 = elem.split(':');
                 if (elem) {
