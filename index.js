@@ -235,7 +235,7 @@ async function insertProxies(type, tab1) {
         try {
             utils.log(1, 'insertProxies()', '');
             var pTab = [];
-            counter = 0;
+            var counter = 0;
             for (elem of tab1) {
                 var tab2 = elem.split(':');
                 if (elem) {
