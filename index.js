@@ -699,7 +699,8 @@ function processAccount(email, password, proxy, id) {
                 await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}}).catch(e => {throw e});;
             }
             var balance = await getBalance(page, email).catch(e => {throw e});
-            await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}}).catch(e => {throw e});;
+            // await Accounts.update({ balance: balance, message1: '', message2: '' }, {where: {email: email}}).catch(e => {throw e});;
+            await Accounts.update({last_roll: new Date(), message1:'OK !'}, {where: {email: email}}).catch(e => {throw e});;
             utils.log(3, 'processAccount()', email+' success');
             pages = await browser.pages();
             pages.map(async (page) => await page.close())
@@ -712,7 +713,6 @@ function processAccount(email, password, proxy, id) {
             pages.map(async (page) => await page.close())
             await browser.close();
         } finally {
-            await Accounts.update({last_roll: new Date()}, {where: {email: email}}).catch(e => {throw e});;
             await utils.sleep(utils.rdn(6000, 12000));
             await utils.deleteDir(datadir+"-"+id)
             return resolve(0);
@@ -733,7 +733,7 @@ async function processAvailableAccounts() {
                                          .catch((e) => { throw e });
             var accLength = accounts.length;
 
-            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 1000}}]}, order: [['delay_ms', 'ASC']]})
+            var proxies = await Proxies.findAll({where: {[Op.and]: [{ up: true }, { delay_ms: {[Op.lte]: 10000}}]}, order: [['delay_ms', 'ASC']]})
                                        .catch((e) => { throw e });
             // proxies = utils.shuffle(proxies);
 
