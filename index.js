@@ -18,7 +18,7 @@ const datadir = path.resolve( __dirname, "./datadir" )
 
 var winnings = 0;
 var nb_roll = 0;
-var nb_acc = 5;
+var nb_acc = 15;
 var nb_proxies = 300;
 var nb_iter = 0;
 
