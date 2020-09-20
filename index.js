@@ -773,6 +773,7 @@ async function processAvailableAccounts() {
 }
 
 async function run() {
+    var isCron = 0;
     utils.log(1, 'run()', 'starting ...');
     await init().catch((e) => { console.log(e) });
     // await getFreeProxies();
@@ -782,20 +783,24 @@ async function run() {
     // await getRsocksProxies();
     // await assignProxies().catch((e) => { console.log(e) });
     
-    cron.schedule('0-5 * * * *', async () => {
+    cron.schedule('* */6 * * *', async () => {
+        isCron = 1
         await init();
         console.log('Running Cron ... ');
         await getProxies();
         await checkAllProxies().catch((e) => { console.log(e) });
+        isCron = 0;
     });
     
-    // while (1) {
-    //     utils.log(1, 'run()', 'start rolling accounts');
-    //     nb_iter++;
-    //     await processAvailableAccounts().catch((e) => {
-    //         console.log(e);
-    //     });
-    // }
+    while (1) {
+        if (!isCron) {
+            utils.log(1, 'run()', 'start rolling accounts');
+            nb_iter++;
+            await processAvailableAccounts().catch((e) => {
+                console.log(e);
+            });
+        }
+    }
 
     // await getVerificationLink('17j4ck.1@gmail.com', 'test1234&', 0)
     // await captchaSolver.test();
