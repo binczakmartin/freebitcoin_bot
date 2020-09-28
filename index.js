@@ -124,31 +124,38 @@ async function getRsocksProxies() {
                     var ips = obj.packages[index].ips
                     console.log("SELECT IP FROM RSOCK PACKAGE : '"+obj.packages[index].name+"'");
                     // console.log(JSON.stringify(ips, null, 1))
-                    resolve(ips);
+                    return resolve(ips);
                 });
             });
-            request.on('error', function(err) {
-                console.log(err);
-                resolve(0);
+            request.on('error', function(e) {
+                console.log(e);
+                return reject(e);
             });
             request.setTimeout( 30000, function( ) {
                 console.log("timeout");
-                resolve(0);
+                return reject("timeout");
             });
         } catch (e) {
             console.log(e)
-            resolve(0);
+            return reject(e);
         }
     });
 }
 
 
 async function getProxies() {
-    utils.log(1, 'getProxies()', 'truncate proxies table');
-    await Proxies.destroy({where: 1, truncate: true});
-    var proxies = await getRsocksProxies();
-    // console.log(proxies);
-    await insertProxies('socks5', proxies);
+    return new Promise((resolve, reject) => {
+        try {            
+            utils.log(1, 'getProxies()', 'truncate proxies table');
+            await Proxies.destroy({where: 1, truncate: true});
+            var proxies = await getRsocksProxies().catch((e) => { throw e })
+            // console.log(proxies);
+            await insertProxies('socks5', proxies);
+            return resolve(0)
+        } catch (e) {
+            return reject(e)
+        }
+    })
 }
 
 async function getFreeProxies() {
@@ -781,29 +788,27 @@ async function run() {
     await init().catch((e) => { console.log(e) });
 
     // await getFreeProxies();
-    // await getProxies();
-    // await checkAllProxies().catch((e) => { console.log(e) });
+    await getProxies();
+    await checkAllProxies().catch((e) => { console.log(e) });
     
-    // cron.schedule('* */6 * * *', async () => {
-    //     isCron = 1
-    //     await init();
-    //     console.log('Running Cron ... ');
-    //     await getProxies();
-    //     await checkAllProxies().catch((e) => { console.log(e) });
-    //     isCron = 0;
-    // });
+    cron.schedule('* */6 * * *', async () => {
+        isCron = 1
+        await init();
+        console.log('Running Cron ... ');
+        await getProxies().catch((e) => { console.log(e) });
+        await checkAllProxies().catch((e) => { console.log(e) });
+        isCron = 0;
+    });
     
-    // while (1) {
-    //     if (!isCron) {
-    //         utils.log(1, 'run()', 'start rolling accounts');
-    //         nb_iter++;
-    //         await processAvailableAccounts().catch((e) => {
-    //             console.log(e);
-    //         });
-    //     }
-    // }
-
-    captchaSolver.test();
+    while (1) {
+        if (!isCron) {
+            utils.log(1, 'run()', 'start rolling accounts');
+            nb_iter++;
+            await processAvailableAccounts().catch((e) => {
+                console.log(e);
+            });
+        }
+    }
 }
 
 run();
