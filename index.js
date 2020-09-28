@@ -784,24 +784,26 @@ async function run() {
     // await getProxies();
     // await checkAllProxies().catch((e) => { console.log(e) });
     
-    cron.schedule('* */6 * * *', async () => {
-        isCron = 1
-        await init();
-        console.log('Running Cron ... ');
-        await getProxies();
-        await checkAllProxies().catch((e) => { console.log(e) });
-        isCron = 0;
-    });
+    // cron.schedule('* */6 * * *', async () => {
+    //     isCron = 1
+    //     await init();
+    //     console.log('Running Cron ... ');
+    //     await getProxies();
+    //     await checkAllProxies().catch((e) => { console.log(e) });
+    //     isCron = 0;
+    // });
     
-    while (1) {
-        if (!isCron) {
-            utils.log(1, 'run()', 'start rolling accounts');
-            nb_iter++;
-            await processAvailableAccounts().catch((e) => {
-                console.log(e);
-            });
-        }
-    }
+    // while (1) {
+    //     if (!isCron) {
+    //         utils.log(1, 'run()', 'start rolling accounts');
+    //         nb_iter++;
+    //         await processAvailableAccounts().catch((e) => {
+    //             console.log(e);
+    //         });
+    //     }
+    // }
+
+    captchaSolver.test();
 }
 
 run();
