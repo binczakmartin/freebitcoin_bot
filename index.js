@@ -144,7 +144,7 @@ async function getRsocksProxies() {
 
 
 async function getProxies() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {            
             utils.log(1, 'getProxies()', 'truncate proxies table');
             await Proxies.destroy({where: 1, truncate: true});
