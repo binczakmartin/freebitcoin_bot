@@ -791,12 +791,13 @@ async function run() {
     await getProxies();
     await checkAllProxies().catch((e) => { console.log(e) });
     
-    cron.schedule('* * */6 * *', async () => {
+    // every 6 hour 
+    cron.schedule('* * */6 * * *', async () => {
         isCron = 1
         await init();
         console.log('Running Cron ... ');
-        await getProxies().catch((e) => { console.log(e) });
-        await checkAllProxies().catch((e) => { console.log(e) });
+        await getProxies();
+        await checkAllProxies();
         isCron = 0;
     });
     
