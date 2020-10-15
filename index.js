@@ -147,12 +147,15 @@ async function getProxies() {
     return new Promise(async (resolve, reject) => {
         try {            
             utils.log(1, 'getProxies()', 'truncate proxies table');
-            await Proxies.destroy({where: 1, truncate: true});
             var proxies = await getRsocksProxies().catch((e) => { throw e })
+            await Proxies.destroy({where: 1, truncate: true});
             // console.log(proxies);
             await insertProxies('socks5', proxies);
             return resolve(0)
         } catch (e) {
+            fs.writeFile("error.log", e, (err) => {
+                console.log("The file was succesfully saved!");
+            }); 
             return reject(e)
         }
     })
